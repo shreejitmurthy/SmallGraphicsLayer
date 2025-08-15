@@ -13,6 +13,18 @@ set(SGL_SOURCES
 
 add_library(SmallGraphicsLayer ${SGL_SOURCES})
 
+# Ensure only one backend is chosen
+if (SGL_BACKEND_SDL3 AND SGL_BACKEND_SOKOL_APP)
+    message(FATAL_ERROR "Choose only one backend: SDL3 OR sokol_app")
+elseif (SGL_BACKEND_SDL3)
+    target_compile_definitions(SmallGraphicsLayer PUBLIC WINDOW_SDL=1)
+elseif (SGL_BACKEND_SOKOL_APP)
+    target_compile_definitions(SmallGraphicsLayer PUBLIC WINDOW_SAPP=1)
+else()
+    message(FATAL_ERROR "Define one backend: -DSGL_BACKEND_SDL3=ON or -DSGL_BACKEND_SOKOL_APP=ON")
+endif()
+
+
 target_include_directories(SmallGraphicsLayer PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -21,6 +33,11 @@ target_include_directories(SmallGraphicsLayer PUBLIC
 target_compile_features(SmallGraphicsLayer PUBLIC cxx_std_20)
 
 target_include_directories(SmallGraphicsLayer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
+
+# check again to see if this sucks
+if(APPLE)
+    target_link_libraries(SmallGraphicsLayer PUBLIC "-framework OpenGL")
+endif()
 
 if (SGL_BUILD_EXAMPLES)
   add_subdirectory(examples)
