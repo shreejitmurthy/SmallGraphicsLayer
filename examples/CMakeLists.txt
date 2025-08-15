@@ -8,4 +8,4 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/SDL EXCLUDE_FROM_ALL)
 
 # Add your examples
-add_subdirectory(hello_sdl3)
+add_subdirectory(clear_sdl3)
