@@ -1,12 +1,11 @@
-#include "SGL/SmallGraphicsLayer.hpp"
-
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+
+#include "SGL/SmallGraphicsLayer.hpp"
 
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
     }
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -14,11 +13,14 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
 
-    SDL_Window* window = SDL_CreateWindow("Window", 800, 600, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("Window", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     bool open = true;
 
     SDL_GL_SetSwapInterval(1);
+
+    SimpleGraphicsLayer sgl;
+    sgl.Init(screenWidth, screenHeight);
 
     SDL_Event event;
 
@@ -39,6 +41,11 @@ int main() {
                     break;
             }
         }
+
+        // default clear colour
+        sgl.Clear();
+        
+        sgl.Render();
 
         SDL_GL_SwapWindow(window);
     }
