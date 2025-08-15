@@ -3,8 +3,6 @@
 
 #include "SGL/SmallGraphicsLayer.hpp"
 
-sg_pass_action pass_action;
-
 SimpleGraphicsLayer sgl;
 
 void init(void) {
