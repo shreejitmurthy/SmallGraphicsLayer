@@ -1,0 +1,9 @@
+[submodule "vendor/sokol"]
+	path = vendor/sokol
+	url = https://github.com/floooh/sokol.git
+[submodule "examples/vendor/sokol"]
+	path = examples/vendor/sokol
+	url = https://github.com/floooh/sokol.git
+[submodule "examples/vendor/SDL"]
+	path = examples/vendor/SDL
+	url = https://github.com/libsdl-org/SDL.git
