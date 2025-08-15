@@ -2,15 +2,12 @@
 
 #include <iostream>
 
-#if defined(WINDOW_SAPP)
-    #define SOKOL_GLUE_IMPL
-    #define SOKOL_LOG_IMPL
+#if defined(WINDOW_SAPP) && defined(__APPLE__) && defined(__MACH__)
+    #include <sokol/sokol_app.h>
     #include <sokol/sokol_glue.h>
     #include <sokol/sokol_log.h>
 #endif
 
-#define SOKOL_GFX_IMPL
-#define SOKOL_GLCORE
 #include <sokol/sokol_gfx.h>
 
 #include "SGL/SmallGraphicsLayer.hpp"
