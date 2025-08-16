@@ -25,7 +25,6 @@ namespace SmallGraphicsLayer {
             }
         }
 
-    
         std::string LoadFileIntoString(const std::string& filepath) {
             namespace fs = std::filesystem;
 
