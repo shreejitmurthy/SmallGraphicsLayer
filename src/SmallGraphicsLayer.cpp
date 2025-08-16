@@ -10,18 +10,18 @@
 
 #include <sokol/sokol_gfx.h>
 
-void SmallGraphicsLayer::Init(int width, int height) {
+void SmallGraphicsLayer::Device::Init(int width, int height) {
     sg_desc desc{};
 
     #if defined(WINDOW_SAPP)
-        SGLState.swapchain = sglue_swapchain();
+        swapchain = sglue_swapchain();
         desc.environment = sglue_environment();
         desc.logger.func = slog_func;
     #elif defined(WINDOW_SDL)
-        SGLState.swapchain = {};
-        SGLState.swapchain.width = width;
-        SGLState.swapchain.height = height;
-        SGLState.swapchain.color_format = SG_PIXELFORMAT_RGBA8;
+        swapchain = {};
+        swapchain.width = width;
+        swapchain.height = height;
+        swapchain.color_format = SG_PIXELFORMAT_RGBA8;
     // TODO: uncomment this, ts *was* pmo
     // #else
     //     #error "No window backend defined! Define WINDOW_SAPP or WINDOW_SDL."
@@ -29,18 +29,22 @@ void SmallGraphicsLayer::Init(int width, int height) {
 
         sg_setup(&desc);
 
-        SGLState.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
+        pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
 }
 
-void SmallGraphicsLayer::Clear(SGLColour clear_col) {
-    SGLState.pass_action.colors[0].clear_value = clear_col;
+void SmallGraphicsLayer::Device::Clear(SGLColour clear_col) {
+    pass_action.colors[0].clear_value = clear_col;
 }
 
-void SmallGraphicsLayer::Render() {
+void SmallGraphicsLayer::Device::Render() {
     sg_begin_pass((sg_pass){
-        .action    = SGLState.pass_action,
-        .swapchain = SGLState.swapchain
+        .action    = pass_action,
+        .swapchain = swapchain
     });
     sg_end_pass();
     sg_commit();
+}
+
+void SmallGraphicsLayer::Device::Shutdown() {
+    sg_shutdown();
 }
