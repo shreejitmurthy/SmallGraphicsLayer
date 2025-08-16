@@ -1,6 +1,5 @@
 #include "SGL/SmallGraphicsLayer.hpp"
-
-#include <iostream>
+#include "SGL/Utils.hpp"
 
 #if defined(WINDOW_SAPP) && defined(__APPLE__) && defined(__MACH__)
     #include <sokol/sokol_app.h>
@@ -47,4 +46,34 @@ void SmallGraphicsLayer::Device::Render() {
 
 void SmallGraphicsLayer::Device::Shutdown() {
     sg_shutdown();
+}
+
+SmallGraphicsLayer::File LoadFile(const std::string& filepath) {
+    SmallGraphicsLayer::File out;
+    out.data = SmallGraphicsLayer::Utils::LoadFileIntoString(filepath);
+    return out;
+}
+
+void SmallGraphicsLayer::AssetManager::Request(const std::string& filepath, AssetType type) {
+    switch (type) {
+        case AssetType::File:
+            files[filepath] = std::async(std::launch::async, LoadFile, filepath);
+            break;
+
+        default:
+            std::cout << "Unsupported type, currently supports: File";
+            break;
+    }
+}
+
+template<>
+SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLayer::File>(const std::string& filepath) {
+    if (loadedFiles.count(filepath)) return &loadedFiles[filepath];
+    if (files.count(filepath) &&
+        files[filepath].wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        loadedFiles[filepath] = files[filepath].get();
+        files.erase(filepath);
+        return &loadedFiles[filepath];
+    }
+    return nullptr;
 }
