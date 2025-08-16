@@ -8,7 +8,7 @@ option(SGL_BACKEND_SAPP "Build using sokol_app" OFF)
 option(SGL_BACKEND_SDL3 "Build using SDL3" ON)
 
 # pick sources based on backend
-set(SGL_SOURCES src/SmallGraphicsLayer.cpp)
+set(SGL_SOURCES "src/SmallGraphicsLayer.cpp" "src/AssetManager.cpp")
 if (SGL_BACKEND_SAPP)
     enable_language(OBJCXX)
     list(APPEND SGL_SOURCES src/sokol_impl.mm)
