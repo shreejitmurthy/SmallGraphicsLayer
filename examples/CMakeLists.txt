@@ -1,11 +1,9 @@
 cmake_minimum_required(VERSION 3.29)
 
-if (NOT SGL_BACKEND_SDL3)
-  message(FATAL_ERROR "Examples are configured for SDL3 only right now. Turn SGL_BACKEND_SDL3=ON.")
-endif()
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/vendor/sokol)
 
-# Bring in the SDL3 submodule (kept out of 'all' so it only builds when linked)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/SDL EXCLUDE_FROM_ALL)
 
-# Add your examples
+# TODO: Way to configure this
 add_subdirectory(clear_sdl3)
+# add_subdirectory(clear_sapp)
