@@ -5,17 +5,19 @@
 
 namespace sgl = SmallGraphicsLayer;
 
+sgl::Device device;
+
 void init(void) {
-    sgl::Init();
+    device.Init();
 }
 
 void frame(void) {
-    sgl::Clear();
-    sgl::Render();
+    device.Clear();  // default clear colour
+    device.Render();
 }
 
 void cleanup(void) {
-    sg_shutdown();
+    device.Shutdown();
 }
 
 int main(int argc, char** argv) {

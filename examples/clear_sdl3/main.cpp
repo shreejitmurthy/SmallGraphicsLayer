@@ -7,7 +7,10 @@ namespace sgl = SmallGraphicsLayer;
 
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
+        return 1;
     }
+    
+    // Ensure an OpenGL context has been created.
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -21,7 +24,8 @@ int main() {
 
     SDL_GL_SetSwapInterval(1);
 
-    sgl::Init(screenWidth, screenHeight);
+    sgl::Device device;
+    device.Init(screenWidth, screenHeight);
 
     SDL_Event event;
 
@@ -43,12 +47,13 @@ int main() {
             }
         }
 
-        // default clear colour
-        sgl::Clear();
-        sgl::Render();
+        device.Clear();  // default clear colour
+        device.Render();
 
         SDL_GL_SwapWindow(window);
     }
+
+    device.Shutdown();
 
     SDL_DestroyWindow(window);
     SDL_GL_DestroyContext(ctx);
