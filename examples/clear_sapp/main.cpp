@@ -8,16 +8,16 @@ namespace sgl = SmallGraphicsLayer;
 sgl::Device device;
 
 void init(void) {
-    device.Init();
+    device.init();
 }
 
 void frame(void) {
-    device.Clear();  // default clear colour
-    device.Render();
+    device.clear();  // default clear colour
+    device.render();
 }
 
 void cleanup(void) {
-    device.Shutdown();
+    device.shutdown();
 }
 
 int main(int argc, char** argv) {
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
         .cleanup_cb = cleanup,
         .width = 800,
         .height = 600,
-        .window_title = "SAPP Window",
+        .window_title = "clear (sapp window)",
         .icon.sokol_default = true,
         .logger.func = slog_func,
     });

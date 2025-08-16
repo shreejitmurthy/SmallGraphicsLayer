@@ -18,14 +18,14 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
 
-    SDL_Window* window = SDL_CreateWindow("SDL3 Window", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("clear (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     bool open = true;
 
     SDL_GL_SetSwapInterval(1);
 
     sgl::Device device;
-    device.Init(screenWidth, screenHeight);
+    device.init(screenWidth, screenHeight);
 
     SDL_Event event;
 
@@ -47,13 +47,13 @@ int main() {
             }
         }
 
-        device.Clear();  // default clear colour
-        device.Render();
+        device.clear();  // default clear colour
+        device.render();
 
         SDL_GL_SwapWindow(window);
     }
 
-    device.Shutdown();
+    device.shutdown();
 
     SDL_DestroyWindow(window);
     SDL_GL_DestroyContext(ctx);
