@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
         .cleanup_cb = cleanup,
         .width = 800,
         .height = 600,
-        .window_title = "Window",
+        .window_title = "SAPP Window",
         .icon.sokol_default = true,
         .logger.func = slog_func,
     });

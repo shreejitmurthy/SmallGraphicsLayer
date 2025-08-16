@@ -89,8 +89,16 @@ target_include_directories(SmallGraphicsLayer PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor
 )
 
+# In the future use Metal?
 if (APPLE)
-    target_link_libraries(SmallGraphicsLayer PUBLIC "-framework Cocoa" "-framework QuartzCore" "-framework OpenGL")
+    target_link_libraries(SmallGraphicsLayer PUBLIC 
+        "-framework Cocoa" 
+        "-framework QuartzCore" 
+        "-framework OpenGL"
+        # "-framework Metal"
+        # "-framework MetalKit"
+        "-stdlib=libc++"
+    )
 endif()
 
 if (SGL_BUILD_EXAMPLES)

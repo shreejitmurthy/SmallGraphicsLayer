@@ -15,7 +15,7 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
 
-    SDL_Window* window = SDL_CreateWindow("Window", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("SDL3 Window", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     bool open = true;
 
