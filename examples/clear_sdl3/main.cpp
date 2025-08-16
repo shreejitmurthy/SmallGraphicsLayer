@@ -3,6 +3,8 @@
 
 #include "SGL/SmallGraphicsLayer.hpp"
 
+namespace sgl = SmallGraphicsLayer;
+
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
     }
@@ -19,8 +21,7 @@ int main() {
 
     SDL_GL_SetSwapInterval(1);
 
-    SimpleGraphicsLayer sgl;
-    sgl.Init(screenWidth, screenHeight);
+    sgl::Init(screenWidth, screenHeight);
 
     SDL_Event event;
 
@@ -43,9 +44,8 @@ int main() {
         }
 
         // default clear colour
-        sgl.Clear();
-        
-        sgl.Render();
+        sgl::Clear();
+        sgl::Render();
 
         SDL_GL_SwapWindow(window);
     }

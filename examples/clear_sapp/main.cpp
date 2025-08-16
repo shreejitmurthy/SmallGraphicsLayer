@@ -3,15 +3,15 @@
 
 #include "SGL/SmallGraphicsLayer.hpp"
 
-SimpleGraphicsLayer sgl;
+namespace sgl = SmallGraphicsLayer;
 
 void init(void) {
-    sgl.Init();
+    sgl::Init();
 }
 
 void frame(void) {
-    sgl.Clear();
-    sgl.Render();
+    sgl::Clear();
+    sgl::Render();
 }
 
 void cleanup(void) {
