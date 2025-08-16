@@ -1,3 +1,5 @@
+// Required for sokol (I think)
+
 #define SOKOL_APP_IMPL
 #define SOKOL_GFX_IMPL
 #define SOKOL_GLUE_IMPL

@@ -1,4 +1,4 @@
-// Required for macOS.
+// This is required for sokol_app examples.
 
 #if defined(__APPLE__) && defined(__MACH__)
     #define SOKOL_IMPL
