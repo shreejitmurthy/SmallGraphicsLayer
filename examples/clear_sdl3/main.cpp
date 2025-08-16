@@ -25,7 +25,7 @@ int main() {
     SDL_GL_SetSwapInterval(1);
 
     sgl::Device device;
-    device.init(screenWidth, screenHeight);
+    device.Init(screenWidth, screenHeight);
 
     SDL_Event event;
 
@@ -47,13 +47,13 @@ int main() {
             }
         }
 
-        device.clear();  // default clear colour
-        device.render();
+        device.Clear();  // default clear colour
+        device.Refresh();
 
         SDL_GL_SwapWindow(window);
     }
 
-    device.shutdown();
+    device.Shutdown();
 
     SDL_DestroyWindow(window);
     SDL_GL_DestroyContext(ctx);

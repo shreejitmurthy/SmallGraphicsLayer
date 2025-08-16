@@ -8,16 +8,16 @@ namespace sgl = SmallGraphicsLayer;
 sgl::Device device;
 
 void init(void) {
-    device.init();
+    device.Init();
 }
 
 void frame(void) {
-    device.clear();  // default clear colour
-    device.render();
+    device.Clear();  // default clear colour
+    device.Refresh();
 }
 
 void cleanup(void) {
-    device.shutdown();
+    device.Shutdown();
 }
 
 int main(int argc, char** argv) {
