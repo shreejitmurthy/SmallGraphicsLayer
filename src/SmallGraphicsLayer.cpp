@@ -50,40 +50,62 @@ void SmallGraphicsLayer::Device::Shutdown() {
     sg_shutdown();
 }
 
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primative) {
-    elements = static_cast<int>(primative);
+SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primitive) {
+    elements = static_cast<int>(primitive);
 
     shd = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
 
     // not cross-platform safe
     pipeline = sg_make_pipeline((sg_pipeline_desc){
         .shader = shd,
+        .index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE,
         .layout = {
             .attrs = {
                 [ATTR_attributes_main_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_attributes_main_aColor].format = SG_VERTEXFORMAT_FLOAT4
+                [ATTR_attributes_main_colour0].format = SG_VERTEXFORMAT_FLOAT4
             }
         },
     });
 
+    // 4 + 2 indices
+    if (primitive == Primitives::Quad) elements += 2;
+    expected_chunks = elements;
+    chunks = 0;
+
     return *this;
 }
 
-// perhaps a bool that asks for pixel to NDC for help? default to true.
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col) {
+// perhaps a bool that asks for pixel to NDC for help? default to false.
+SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col) {  
     std::array<float, 7> chunk = {pos.x, pos.y, pos.z,  col.r, col.g, col.b, col.a};
     vertices.insert(vertices.end(), chunk.begin(), chunk.end());
-    // should personally throw an error if too many chunks are inserted
-    // should personally throw a warn if there are less than expected as well
+    chunks++;
+    // should personally throw a warn if there are less than expected chunks as well
+    return *this;
+}
+
+SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Index(SmallGraphicsLayer::Index index) {
+    std::array<std::uint16_t, 3> chunk = {index.x, index.y, index.z};
+    indices.insert(indices.end(), chunk.begin(), chunk.end());
+    chunks++;
     return *this;
 }
 
 void SmallGraphicsLayer::AttributeBuilder::End() {
     // not cross-platform safe
-    bindings.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
-        .size = vertices.size() * sizeof(float),
-        .data = {.ptr = vertices.data(), .size = vertices.size() * sizeof(float)},
-    });
+    if (vertices.size() > 0) {
+        bindings.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
+            .size = vertices.size() * sizeof(float),
+            .data = {.ptr = vertices.data(), .size = vertices.size() * sizeof(float)},
+        });
+    }
+
+    if (indices.size() > 0) {
+        bindings.index_buffer = sg_make_buffer((sg_buffer_desc){
+            .usage.index_buffer = true,
+            .data = {.ptr = indices.data(), .size = indices.size() * sizeof(std::uint16_t)},
+        });
+    }
 }
 
 void SmallGraphicsLayer::AttributeBuilder::Draw() {

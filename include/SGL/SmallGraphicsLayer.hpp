@@ -13,12 +13,12 @@ namespace SmallGraphicsLayer {
 typedef sg_color Colour;
 
 struct Colours {
-    static constexpr Colour White = {1, 1, 1, 1};
-    static constexpr Colour Red   = {1, 0, 0, 1};
-    static constexpr Colour Green = {0, 1, 0, 1};
-    static constexpr Colour Blue  = {0, 0, 1, 1};
+    static constexpr Colour White  = {1, 1, 1, 1};
+    static constexpr Colour Red    = {1, 0, 0, 1};
+    static constexpr Colour Green  = {0, 1, 0, 1};
+    static constexpr Colour Blue   = {0, 0, 1, 1};
+    static constexpr Colour Yellow = {1, 1, 0, 1};
 };
-
 
 class Device {
 public:
@@ -32,22 +32,27 @@ private:
 };
 
 struct Position { float x, y, z; };
+struct Index { std::uint16_t x, y, z; };
 
 enum class Primitives {
-    Triangle = 3
+    Triangle = 3,
+    Quad
 };
 
 class AttributeBuilder {
 public:
     AttributeBuilder& Begin(Primitives primative);
     AttributeBuilder& Vertex(Position pos, Colour col);
+    AttributeBuilder& Index(Index index);
     void End();
     void Draw();
     void Destroy();
-
 private:
     int elements;
+    int chunks;
+    int expected_chunks;
     std::vector<float> vertices;
+    std::vector<std::uint16_t> indices;
 
     sg_shader shd = {};
     sg_buffer vbuf = {};
