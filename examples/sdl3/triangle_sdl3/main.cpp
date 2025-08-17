@@ -28,11 +28,21 @@ int main() {
     device.Init(screenWidth, screenHeight);
 
     sgl::AttributeBuilder ab;
-    ab.Begin(sgl::Primitives::Triangle)
-        .Vertex({0.5f, -0.5f, 0.0f},  sgl::Colours::Red)
-        .Vertex({-0.5f, -0.5f, 0.0f}, sgl::Colours::Green)
-        .Vertex({0.0f,  0.5f, 0.0f},  sgl::Colours::Blue)
-        .End();
+    ab.Begin(sgl::Primitives::Triangle);
+    ab.Vertex({0.5f, -0.5f, 0.0f},  sgl::Colours::Red);
+    ab.Vertex({-0.5f, -0.5f, 0.0f}, sgl::Colours::Green);
+    ab.Vertex({0.0f,  0.5f, 0.0f},  sgl::Colours::Blue);
+    ab.End();
+
+    /* If you wanted to draw a quad... */
+    // ab.Begin(sgl::Primitives::Quad);
+    // ab.Vertex({0.5f,  -0.5f, 0.f}, sgl::Colours::Red);
+    // ab.Vertex({-0.5f, -0.5f, 0.f}, sgl::Colours::Green);
+    // ab.Vertex({-0.5f, 0.5f,  0.f}, sgl::Colours::Blue);
+    // ab.Vertex({0.5f,  0.5f,  0.f}, sgl::Colours::Yellow);
+    // // triangle 1 and 2
+    // ab.Index({0, 1, 2}).Index({0, 2, 3});
+    // ab.End();
 
     SDL_Event event;
 
