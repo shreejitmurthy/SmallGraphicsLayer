@@ -2,11 +2,14 @@
 
 #include <sokol/sokol_gfx.h>
 
+#include "Math.hpp"
+
 #include "genshaders/attributes.glsl.h"
 
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 namespace SmallGraphicsLayer {
 
@@ -22,16 +25,22 @@ struct Colours {
 
 class Device {
 public:
-    void Init(/* SGLFlags flags, */ int width = 0, int height = 0);
+    // Consider a singleton accessor pattern in the future
+    void Init(/* SGLFlags flags, */ int w = 0, int h = 0);
     void Clear(Colour clear_col = {0.15f, 0.15f, 0.2f, 1.0f});
     void Refresh();
     void Shutdown();
+
+    float Width()  { return width;  }
+    float Height() { return height; }
+    Math::Vec2 FrameSize() { return {static_cast<float>(width), static_cast<float>(height)}; };
 private:
+    std::uint32_t width, height;
     sg_pass_action pass_action;
     sg_swapchain swapchain;
 };
 
-struct Position { float x, y, z; };
+typedef Math::Vec3 Position;
 struct Index { std::uint16_t x, y, z; };
 
 enum class Primitives {
@@ -41,18 +50,33 @@ enum class Primitives {
 
 class AttributeBuilder {
 public:
+    AttributeBuilder(Math::Vec2 framebuffer_size, bool convertPixels = true) { 
+        framebuf = framebuffer_size;
+        should_convert = convertPixels;
+    }
     AttributeBuilder& Begin(Primitives primative);
-    AttributeBuilder& Vertex(Position pos, Colour col);
+    AttributeBuilder& Vertex(Position pos, Colour col, bool convertPixels = true);
     AttributeBuilder& Index(Index index);
     void End();
     void Draw();
     void Destroy();
 private:
+
+    inline Position _Pixels2NDC(Position pos) {
+        float x = ((2 * pos.x) / framebuf.x) - 1;
+        float y = 1 - ((2 * pos.y) / framebuf.y);
+        return { x, y, pos.z };
+    };
+
     int elements;
     int chunks;
     int expected_chunks;
     std::vector<float> vertices;
     std::vector<std::uint16_t> indices;
+
+    bool should_convert;
+
+    Math::Vec2 framebuf;
 
     sg_shader shd = {};
     sg_buffer vbuf = {};

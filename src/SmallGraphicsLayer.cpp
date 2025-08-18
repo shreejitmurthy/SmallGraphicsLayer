@@ -10,8 +10,11 @@
 
 #include <sokol/sokol_gfx.h>
 
-void SmallGraphicsLayer::Device::Init(int width, int height) {
+void SmallGraphicsLayer::Device::Init(int w, int h) {
     sg_desc desc{};
+
+    width = w;
+    height = h;
 
     #if defined(WINDOW_SAPP)
         swapchain = sglue_swapchain();
@@ -75,12 +78,13 @@ SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begi
     return *this;
 }
 
-// perhaps a bool that asks for pixel to NDC for help? default to false.
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col) {  
-    std::array<float, 7> chunk = {pos.x, pos.y, pos.z,  col.r, col.g, col.b, col.a};
+// should personally throw a warn if there are less than expected chunks as well
+SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col, bool convertPixels) {
+    should_convert = convertPixels;  
+    Math::Vec3 position = should_convert ? _Pixels2NDC(pos) : pos;
+    std::array<float, 7> chunk = {position.x, position.y, position.z,  col.r, col.g, col.b, col.a};
     vertices.insert(vertices.end(), chunk.begin(), chunk.end());
     chunks++;
-    // should personally throw a warn if there are less than expected chunks as well
     return *this;
 }
 
