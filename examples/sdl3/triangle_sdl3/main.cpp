@@ -27,19 +27,23 @@ int main() {
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
 
-    sgl::AttributeBuilder ab;
+    // The boolean indicates whether to convert pixels to NDC.
+    // Defaulted to false; don't pass a value at all (or just set to true) to use -1 to 1 NDC
+    sgl::AttributeBuilder ab(device.FrameSize());
     ab.Begin(sgl::Primitives::Triangle);
-    ab.Vertex({0.5f,  -0.5f}, sgl::Colours::Red);
-    ab.Vertex({-0.5f, -0.5f}, sgl::Colours::Green);
-    ab.Vertex({0.0f,   0.5f}, sgl::Colours::Blue);
+    // Vertex() accepts a boolean as the last parameter, defaulted to false.
+    // This is only for if you want to use NDC for any specific vertex, like in the first one.
+    ab.Vertex({0.f, 0.5f}, sgl::Colours::Blue, true);
+    ab.Vertex({600, 450}, sgl::Colours::Red);
+    ab.Vertex({200, 450}, sgl::Colours::Green);
     ab.End();
 
     /* If you wanted to draw a quad... */
     // ab.Begin(sgl::Primitives::Quad);
-    // ab.Vertex({0.5f,  -0.5f}, sgl::Colours::Red);
-    // ab.Vertex({-0.5f, -0.5f}, sgl::Colours::Green);
-    // ab.Vertex({-0.5f,  0.5f}, sgl::Colours::Blue);
-    // ab.Vertex({0.5f,   0.5f}, sgl::Colours::Yellow);
+    // ab.Vertex({600, 450}, sgl::Colours::Red);
+    // ab.Vertex({200, 450}, sgl::Colours::Green);
+    // ab.Vertex({200, 150}, sgl::Colours::Blue);
+    // ab.Vertex({600, 150}, sgl::Colours::Yellow);
     // // triangle 1 and 2
     // ab.Index({0, 1, 2}).Index({0, 2, 3});
     // ab.End();
