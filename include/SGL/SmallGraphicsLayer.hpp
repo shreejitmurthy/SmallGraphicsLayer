@@ -50,18 +50,17 @@ enum class Primitives {
 
 class AttributeBuilder {
 public:
-    AttributeBuilder(Math::Vec2 framebuffer_size, bool convertPixels = true) { 
+    AttributeBuilder(Math::Vec2 framebuffer_size, bool useNDC = false) { 
         framebuf = framebuffer_size;
-        should_convert = convertPixels;
+        enable_ndc = useNDC;
     }
     AttributeBuilder& Begin(Primitives primative);
-    AttributeBuilder& Vertex(Position pos, Colour col, bool convertPixels = true);
+    AttributeBuilder& Vertex(Position pos, Colour col, bool useNDC = false);
     AttributeBuilder& Index(Index index);
     void End();
     void Draw();
     void Destroy();
 private:
-
     inline Position _Pixels2NDC(Position pos) {
         float x = ((2 * pos.x) / framebuf.x) - 1;
         float y = 1 - ((2 * pos.y) / framebuf.y);
@@ -74,7 +73,7 @@ private:
     std::vector<float> vertices;
     std::vector<std::uint16_t> indices;
 
-    bool should_convert;
+    bool enable_ndc;
 
     Math::Vec2 framebuf;
 

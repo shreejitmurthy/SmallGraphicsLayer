@@ -79,9 +79,9 @@ SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begi
 }
 
 // should personally throw a warn if there are less than expected chunks as well
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col, bool convertPixels) {
-    should_convert = convertPixels;  
-    Math::Vec3 position = should_convert ? _Pixels2NDC(pos) : pos;
+SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col, bool useNDC) {
+    enable_ndc = useNDC;  
+    Math::Vec3 position = enable_ndc ? pos : _Pixels2NDC(pos);
     std::array<float, 7> chunk = {position.x, position.y, position.z,  col.r, col.g, col.b, col.a};
     vertices.insert(vertices.end(), chunk.begin(), chunk.end());
     chunks++;
