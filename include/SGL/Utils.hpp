@@ -9,8 +9,9 @@
 
 namespace fs = std::filesystem;
 
-namespace SmallGraphicsLayer {
-namespace Utils {
+#include "Math.hpp"
+
+namespace SmallGraphicsLayer::Utils {
 fs::path FindPathUpwards(const fs::path& targetPath, fs::path startDir) {
     for (;;) {
         const fs::path candidate = startDir / targetPath;
@@ -41,6 +42,5 @@ std::string LoadFileIntoString(const std::string& filepath) {
     std::ostringstream ss;
     ss << in.rdbuf();
     return ss.str();
-}
 }
 };
