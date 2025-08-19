@@ -56,11 +56,11 @@ void SmallGraphicsLayer::Device::Shutdown() {
 SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primitive) {
     elements = static_cast<int>(primitive);
 
-    shd = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
+    shader = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
 
     // not cross-platform safe
     sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = shd;
+    pip_desc.shader = shader;
     pip_desc.index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE;
     pip_desc.layout.attrs[ATTR_attributes_main_position].format = SG_VERTEXFORMAT_FLOAT3;
     pip_desc.layout.attrs[ATTR_attributes_main_colour0].format = SG_VERTEXFORMAT_FLOAT4;
@@ -116,7 +116,7 @@ void SmallGraphicsLayer::AttributeBuilder::Draw() {
 }
 
 void SmallGraphicsLayer::AttributeBuilder::Destroy() {
-    sg_destroy_shader(shd);
+    sg_destroy_shader(shader);
     sg_destroy_buffer(vbuf);
     sg_destroy_buffer(ibuf);
     sg_destroy_pipeline(pipeline);
