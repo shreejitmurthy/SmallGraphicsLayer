@@ -43,12 +43,31 @@ private:
 typedef Math::Vec3 Position;
 struct Index { std::uint16_t x, y, z; };
 
+
+enum class RendererType {
+    Attribute,  // basic attributes
+    Single,     // sprites that render individually with one call
+    Instanced   // more efficient instacned sprite rendering
+};
+
+class Renderer {
+public:
+    virtual ~Renderer() = default;
+    virtual void Draw() = 0;
+    virtual void Destroy() = 0;
+    virtual RendererType type() const = 0;
+protected:
+    sg_shader   shader = {};
+    sg_pipeline pipeline = {};
+    sg_bindings bindings = {};
+};
+
 enum class Primitives {
     Triangle = 3,
     Quad
 };
 
-class AttributeBuilder {
+class AttributeBuilder : public Renderer {
 public:
     AttributeBuilder(Math::Vec2 framebuffer_size, bool useNDC = false) { 
         framebuf = framebuffer_size;
@@ -57,9 +76,12 @@ public:
     AttributeBuilder& Begin(Primitives primative);
     AttributeBuilder& Vertex(Position pos, Colour col, bool useNDC = false);
     AttributeBuilder& Index(Index index);
+    
     void End();
-    void Draw();
-    void Destroy();
+    void Draw() override;
+    void Destroy() override;
+    
+    RendererType type() const override { return RendererType::Attribute; }
 private:
     inline Position _Pixels2NDC(Position pos) {
         float x = ((2 * pos.x) / framebuf.x) - 1;
@@ -77,10 +99,9 @@ private:
 
     Math::Vec2 framebuf;
 
-    sg_shader shd = {};
     sg_buffer vbuf = {};
     sg_buffer ibuf = {};
-    sg_bindings bindings = {};
-    sg_pipeline pipeline = {};
 };
 };
+
+// TODO: CPU-side sprite batching (like libGDX) and GPU instancing, gives more options.
