@@ -59,16 +59,12 @@ SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begi
     shd = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
 
     // not cross-platform safe
-    pipeline = sg_make_pipeline((sg_pipeline_desc){
-        .shader = shd,
-        .index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE,
-        .layout = {
-            .attrs = {
-                [ATTR_attributes_main_position].format = SG_VERTEXFORMAT_FLOAT3,
-                [ATTR_attributes_main_colour0].format = SG_VERTEXFORMAT_FLOAT4
-            }
-        },
-    });
+    sg_pipeline_desc pip_desc = {};
+    pip_desc.shader = shd;
+    pip_desc.index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE;
+    pip_desc.layout.attrs[ATTR_attributes_main_position].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_attributes_main_colour0].format = SG_VERTEXFORMAT_FLOAT4;
+    pipeline = sg_make_pipeline(&pip_desc);
 
     // 4 + 2 indices
     if (primitive == Primitives::Quad) elements += 2;
@@ -96,19 +92,20 @@ SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Inde
 }
 
 void SmallGraphicsLayer::AttributeBuilder::End() {
-    // not cross-platform safe
     if (vertices.size() > 0) {
-        bindings.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
-            .size = vertices.size() * sizeof(float),
-            .data = {.ptr = vertices.data(), .size = vertices.size() * sizeof(float)},
-        });
+        sg_buffer_desc vbuf_desc = {};
+        vbuf_desc.size = vertices.size() * sizeof(float);
+        vbuf_desc.data.ptr = vertices.data();
+        vbuf_desc.data.size = vertices.size() * sizeof(float);
+        bindings.vertex_buffers[0] = sg_make_buffer(&vbuf_desc);
     }
 
     if (indices.size() > 0) {
-        bindings.index_buffer = sg_make_buffer((sg_buffer_desc){
-            .usage.index_buffer = true,
-            .data = {.ptr = indices.data(), .size = indices.size() * sizeof(std::uint16_t)},
-        });
+        sg_buffer_desc ibuf_desc = {};
+        ibuf_desc.usage.index_buffer = true;
+        ibuf_desc.data.ptr = indices.data();
+        ibuf_desc.size = indices.size() * sizeof(std::uint16_t);
+        bindings.index_buffer = sg_make_buffer(&ibuf_desc);
     }
 }
 
