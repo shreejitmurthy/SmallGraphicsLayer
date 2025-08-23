@@ -18,7 +18,7 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
 
-    SDL_Window* window = SDL_CreateWindow("triangle (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("sprite (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     bool open = true;
 
@@ -27,12 +27,8 @@ int main() {
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
 
-    sgl::AttributeBuilder ab(device.FrameSize());
-    ab.Begin(sgl::Primitives::Triangle);
-    ab.Vertex({400, 150}, sgl::Colours::Blue);
-    ab.Vertex({600, 450}, sgl::Colours::Red);
-    ab.Vertex({200, 450}, sgl::Colours::Green);
-    ab.End();
+    // TODO: Use AssetManager to load.
+    sgl::Sprite sprite("examples/sdl3/sprite_sdl3/freaker.png");
     
     SDL_Event event;
 
@@ -55,13 +51,18 @@ int main() {
         }
 
         device.Clear();  // default clear colour
-        ab.Draw();
+
+        // Draw the sprite in the centre of the screen
+        // Sprites draw from the top-left of the image, but this
+        // is altered by the second `origin` parameter.
+        sprite.Draw({400, 300}, {sprite.Width() / 2, sprite.Height() / 2});
+
         device.Refresh();
 
         SDL_GL_SwapWindow(window);
     }
 
-    ab.Destroy();
+    sprite.Destroy();
     device.Shutdown();
 
     SDL_DestroyWindow(window);
