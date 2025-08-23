@@ -5,6 +5,7 @@
 #include "Math.hpp"
 
 #include "genshaders/attributes.glsl.h"
+#include "genshaders/ssprite.glsl.h"
 
 #include <cstdint>
 #include <vector>
@@ -43,21 +44,19 @@ private:
 typedef Math::Vec3 Position;
 struct Index { std::uint16_t x, y, z; };
 
-
 enum class RendererType {
     Attribute,  // basic attributes
     Single,     // sprites that render individually with one call
-    Instanced   // more efficient instacned sprite rendering
+    Instanced   // more efficient instanced sprite rendering
 };
 
 class Renderer {
 public:
     virtual ~Renderer() = default;
-    virtual void Draw() = 0;
     virtual void Destroy() = 0;
-    virtual RendererType type() const = 0;
+    virtual RendererType Type() const = 0;
 protected:
-    sg_shader   shader = {};
+    sg_shader   shader   = {};
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
 };
@@ -67,6 +66,7 @@ enum class Primitives {
     Quad
 };
 
+// Basic primitve and attribute renderer
 class AttributeBuilder : public Renderer {
 public:
     AttributeBuilder(Math::Vec2 framebuffer_size, bool useNDC = false) { 
@@ -78,15 +78,15 @@ public:
     AttributeBuilder& Index(Index index);
     
     void End();
-    void Draw() override;
+    void Draw();
     void Destroy() override;
     
-    RendererType type() const override { return RendererType::Attribute; }
+    RendererType Type() const override { return RendererType::Attribute; }
 private:
     inline Position _Pixels2NDC(Position pos) {
         float x = ((2 * pos.x) / framebuf.x) - 1;
         float y = 1 - ((2 * pos.y) / framebuf.y);
-        return { x, y, pos.z };
+        return Math::Vec3(x, y, pos.z);
     };
 
     int elements;
@@ -102,6 +102,30 @@ private:
     sg_buffer vbuf = {};
     sg_buffer ibuf = {};
 };
+
+// Single sprite renderer, uses one draw call per sprite
+class Sprite : public Renderer {
+public:
+    Sprite(const std::string& path);
+    void Draw(Math::Vec2 position, Math::Vec2 origin = {0, 0}, Math::Vec2 scale = {1, 1});
+    void Destroy() override;
+
+    RendererType Type() const override { return RendererType::Single; }
+    
+    float Width()  const { return size.x; }
+    float Height() const { return size.y; }
+private:
+    sg_image image = {};
+    sg_buffer vbuf = {};
+    sg_buffer ibuf = {};
+    sprite_params_t params;
+    Math::Vec2 size;
 };
 
 // TODO: CPU-side sprite batching (like libGDX) and GPU instancing, gives more options.
+
+// Instanced sprite renderer, uses one draw call for many sprites
+class InstancedSpriteRenderer : public Renderer {
+
+};
+};
