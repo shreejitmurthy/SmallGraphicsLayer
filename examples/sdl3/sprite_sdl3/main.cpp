@@ -2,6 +2,7 @@
 #include <SDL3/SDL_main.h>
 
 #include "SGL/SmallGraphicsLayer.hpp"
+#include "SGL/AssetManager.hpp"
 
 namespace sgl = SmallGraphicsLayer;
 
@@ -26,9 +27,13 @@ int main() {
 
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
+    
+    sgl::AssetManager am;
+    am.Request("examples/sdl3/sprite_sdl3/freaker.png", sgl::AssetType::Texture);
+    sgl::Texture* texture = am.GetTexture("examples/sdl3/sprite_sdl3/freaker.png");
+    sgl::Sprite sprite(texture->GetData());
+    texture->Free();
 
-    // TODO: Use AssetManager to load.
-    sgl::Sprite sprite("examples/sdl3/sprite_sdl3/freaker.png");
     
     SDL_Event event;
 
