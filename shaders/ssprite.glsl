@@ -5,12 +5,12 @@ layout(binding=0) uniform params {
     mat4 mvp;
 };
 
-in vec4 pos;
+in vec3 pos;
 in vec2 texcoord0;
 out vec2 uv;
 
 void main() {
-    gl_Position = mvp * pos;
+    gl_Position = mvp * vec4(pos, 1.0);
     uv = texcoord0;
 }
 @end
