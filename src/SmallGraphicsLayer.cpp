@@ -68,7 +68,6 @@ SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begi
 
     shader = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
 
-    // not cross-platform safe
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = shader;
     pip_desc.index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE;
@@ -156,10 +155,10 @@ SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
     sg_sampler smp = sg_make_sampler(smp_desc);
 
     const float vertices[] = {
-        0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,   0.0f, 1.0f
+        0.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+        0.0f, 1.0f, 0.0f,   0.0f, 1.0f
     };
 
     sg_buffer_desc vbuf_desc = {};
@@ -179,7 +178,7 @@ SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
 
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = shd;
-    pip_desc.layout.attrs[ATTR_sprite_main_pos].format = SG_VERTEXFORMAT_FLOAT4;
+    pip_desc.layout.attrs[ATTR_sprite_main_pos].format = SG_VERTEXFORMAT_FLOAT3;
     pip_desc.layout.attrs[ATTR_sprite_main_texcoord0].format = SG_VERTEXFORMAT_FLOAT2;
     pip_desc.sample_count = 1;
     pip_desc.color_count = 1;
@@ -199,7 +198,6 @@ SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
     bindings.index_buffer = ibuf;
     bindings.images[IMG_sprite_tex] = image;
     bindings.samplers[SMP_sprite_smp] = smp;
-
 }
 
 void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
