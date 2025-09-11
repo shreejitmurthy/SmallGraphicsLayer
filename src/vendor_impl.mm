@@ -10,3 +10,6 @@
 #include "sokol/sokol_gfx.h"
 #include "sokol/sokol_glue.h"
 #include "sokol/sokol_log.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
