@@ -3,6 +3,10 @@
 
 #include "stb_image.h"
 
+void SmallGraphicsLayer::Texture::Free() {
+    stbi_image_free(data);
+}
+
 SmallGraphicsLayer::File LoadFile(const std::string& filepath) {
     SmallGraphicsLayer::File out;
     out.data = SmallGraphicsLayer::Utils::LoadFileIntoString(filepath);
@@ -39,6 +43,15 @@ void SmallGraphicsLayer::AssetManager::Request(const std::string& filepath, Asse
 
 template<>
 SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLayer::File>(const std::string& filepath) {
+    return GetFile(filepath);
+}
+
+template<>
+SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLayer::Texture>(const std::string& filepath) {
+    return GetTexture(filepath);
+}
+
+SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::GetFile(const std::string& filepath) {
     if (loadedFiles.count(filepath)) return &loadedFiles[filepath];
     if (files.count(filepath) &&
         files[filepath].wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
@@ -49,8 +62,7 @@ SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLay
     return nullptr;
 }
 
-template<>
-SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLayer::Texture>(const std::string& filepath) {
+SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::GetTexture(const std::string& filepath) {
     if (loadedTextures.count(filepath)) return &loadedTextures[filepath];
     if (textures.count(filepath) &&
         textures[filepath].wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
