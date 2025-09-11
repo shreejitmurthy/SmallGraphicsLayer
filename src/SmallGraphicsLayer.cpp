@@ -9,9 +9,6 @@
 
 #include <array>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include <sokol/sokol_gfx.h>
 
 void SmallGraphicsLayer::Device::Init(int w, int h) {
@@ -131,12 +128,9 @@ void SmallGraphicsLayer::AttributeBuilder::Destroy() {
     sg_destroy_pipeline(pipeline);
 }
 
-SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
-    int w, h, channels;
-    stbi_uc* pixels = stbi_load(Utils::FindPathUpwards(path).c_str(), &w, &h, &channels, 4);
-    if (pixels != nullptr) {
-        std::cout << "Loaded sprite at: " << Utils::FindPathUpwards(path).c_str() << std::endl;
-    }
+SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
+    int w = std::get<0>(data), h = std::get<1>(data);
+    unsigned char* pixels = std::get<2>(data);
 
     size = {static_cast<float>(w), static_cast<float>(h)};
 
@@ -172,7 +166,7 @@ SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
     ibuf_desc.usage.index_buffer = true;
     ibuf = sg_make_buffer(ibuf_desc);
 
-    stbi_image_free(pixels);
+    // stbi_image_free(pixels);
 
     sg_shader shd = sg_make_shader(sprite_main_shader_desc(sg_query_backend()));
 
@@ -202,7 +196,8 @@ SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
     bindings.samplers[SMP_sprite_smp] = smp;
 }
 
-void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
+void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale)
+{
     params.mvp = Math::Mat4::ortho(0.0f, 800, 600, 0.0f, -1.0f, 1.0f);
 
     params.mvp *= Math::Mat4::translate({ position.x - origin.x, position.y - origin.y, 0.0f });
