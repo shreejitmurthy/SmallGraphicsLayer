@@ -14,6 +14,11 @@ enum class AssetType {
 
 typedef struct File { std::string data; } File;
 
+typedef struct Texture { 
+    int width, height;
+    unsigned char* data;
+} Texture;
+
 class AssetManager {
 public:
     void Request(const std::string& filepath, AssetType type = AssetType::File);
@@ -22,6 +27,8 @@ public:
     T* Get(const std::string& filepath);
 private:
     std::unordered_map<std::string, std::future<File>> files;
+    std::unordered_map<std::string, std::future<Texture>> textures;
     std::unordered_map<std::string, File> loadedFiles;
+    std::unordered_map<std::string, Texture> loadedTextures;
 };
 }
