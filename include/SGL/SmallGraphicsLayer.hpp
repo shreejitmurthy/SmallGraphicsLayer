@@ -126,6 +126,7 @@ private:
 
 // Instanced sprite renderer, uses one draw call for many sprites
 class InstancedSpriteRenderer : public Renderer {
-
+public:
+    InstancedSpriteRenderer();
 };
 };
