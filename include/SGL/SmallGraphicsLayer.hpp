@@ -107,6 +107,7 @@ private:
 class Sprite : public Renderer {
 public:
     Sprite(const std::string& path);
+    Sprite(std::tuple<int, int, unsigned char> data);
     void Draw(Math::Vec2 position, Math::Vec2 origin = {0, 0}, Math::Vec2 scale = {1, 1});
     void Destroy() override;
 

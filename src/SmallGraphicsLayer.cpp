@@ -196,7 +196,9 @@ SmallGraphicsLayer::Sprite::Sprite(const std::string& path) {
 
     bindings.vertex_buffers[0] = vbuf;
     bindings.index_buffer = ibuf;
-    bindings.images[IMG_sprite_tex] = image;
+    sg_view_desc view_desc = {};
+    view_desc.texture.image = image;
+    bindings.views[VIEW_sprite_tex] = sg_make_view(&view_desc);
     bindings.samplers[SMP_sprite_smp] = smp;
 }
 
