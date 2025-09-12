@@ -28,7 +28,7 @@ int main() {
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
 
-    std::string path = "examples/sdl3/sprite_sdl3/freaker.png";
+    std::string path = "examples/sdl3/sprite/freaker.png";
 
     // The asset manager handles async resource loading and freeing. Don't free the memory yourself.
     sgl::AssetManager::Request(path, sgl::AssetType::Texture);

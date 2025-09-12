@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.29)
 
-add_executable(sprite_sdl3
+add_executable(sprite
     main.cpp
 )
 
-target_link_libraries(sprite_sdl3 PRIVATE
+target_link_libraries(sprite PRIVATE
     SmallGraphicsLayer
     SDL3::SDL3
 )
