@@ -3,11 +3,13 @@ project(SmallGraphicsLayer VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_subdirectory("vendor/spdlog")
+
 option(SGL_BUILD_EXAMPLES "Build example apps" ON)
 option(SGL_BACKEND_SAPP "Build using sokol_app" OFF)
 option(SGL_BACKEND_SDL3 "Build using SDL3" ON)
 
-# pick sources based on backend
+# pick sources based on window backend
 set(SGL_SOURCES "src/SmallGraphicsLayer.cpp" "src/AssetManager.cpp")
 if (SGL_BACKEND_SAPP)
     enable_language(OBJCXX)
@@ -18,15 +20,15 @@ endif()
 
 add_library(SmallGraphicsLayer ${SGL_SOURCES})
 
-# exactly one backend
+# exactly one window backend
 if (SGL_BACKEND_SDL3 AND SGL_BACKEND_SAPP)
-    message(FATAL_ERROR "Choose only one backend")  
+    message(FATAL_ERROR "Choose only one window backend")  
 elseif (SGL_BACKEND_SDL3)
     target_compile_definitions(SmallGraphicsLayer PUBLIC WINDOW_SDL=1)  
 elseif (SGL_BACKEND_SAPP)
     target_compile_definitions(SmallGraphicsLayer PUBLIC WINDOW_SAPP=1) 
 else()
-    message(FATAL_ERROR "Define one backend")   
+    message(FATAL_ERROR "Define one window backend")   
 endif()
 
 target_include_directories(SmallGraphicsLayer PUBLIC
@@ -36,7 +38,7 @@ target_include_directories(SmallGraphicsLayer PUBLIC
 )
 
 # In the future use Metal?
-if (APPLE)
+if (APPLE)  # todo: build for other platforms
     target_link_libraries(SmallGraphicsLayer PUBLIC 
         "-framework Cocoa" 
         "-framework QuartzCore" 
@@ -44,6 +46,7 @@ if (APPLE)
         # "-framework Metal"
         # "-framework MetalKit"
         "-stdlib=libc++"
+        spdlog::spdlog
     )
 endif()
 
