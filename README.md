@@ -13,9 +13,11 @@ cmake --build .
 
 Currently, SGL can do the following:
 - Clear screen/buffer
-- Draw primitives
+- Primitive drawing
 - Asynchronous assset loading and fetching
-- Draw sprites normally (batched in the near future)
+- Sprite drawing (batching in the near future)
 
 >[!IMPORTANT]
-> If you don't wish to use the asset manager, you will need to use your own implementation. Read the source code to see what data each class (Sprite). `stb_image.h` is recommended, and is what is used for the asset manager.
+> If you don't wish to use the asset manager, you will need to use your own implementation. Read the source code to see what data each class (Sprite) requires for initialisation. Below are the recommendations, and what is used by the asset manager:
+
+- `stb_image.h` for all image loading.
