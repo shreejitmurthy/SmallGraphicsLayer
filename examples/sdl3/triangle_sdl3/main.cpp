@@ -32,7 +32,7 @@ int main() {
     sgl::AttributeBuilder ab(device.FrameSize());
     ab.Begin(sgl::Primitives::Triangle);
     // Vertex() accepts a boolean as the last parameter, defaulted to false.
-    // This is only for if you want to use NDC for any specific vertex, like in the first one.
+    // The boolean is for if you want to use NDC for any specific vertex, like in the first one.
     ab.Vertex({0.f, 0.5f}, sgl::Colours::Blue, true);
     ab.Vertex({600, 450}, sgl::Colours::Red);
     ab.Vertex({200, 450}, sgl::Colours::Green);
