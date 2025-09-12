@@ -29,7 +29,6 @@ typedef struct Texture {
     
 } Texture;
 
-// TODO: some changes i will make myself later
 class AssetManager {
 public:
     void Request(const std::string& filepath, AssetType type = AssetType::File);
@@ -39,7 +38,7 @@ public:
     T* Get(const std::string& filepath);
 
     File* GetFile(const std::string& filepath);
-    Texture* GetTexture(const std::string& filepath);
+    Texture* GetTexture(const std::string& path);
 private:
     std::unordered_map<std::string, std::future<File>> files;
     std::unordered_map<std::string, std::future<Texture>> textures;

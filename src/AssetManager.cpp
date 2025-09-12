@@ -34,6 +34,7 @@ void SmallGraphicsLayer::AssetManager::Request(const std::string& filepath, Asse
         
         case AssetType::Texture:
             textures[filepath] = std::async(std::launch::async, LoadTexture, filepath);
+            break;
 
         default:
             std::cout << "Unsupported type, currently supports: File";
@@ -62,13 +63,11 @@ SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::GetFile(const std::s
     return nullptr;
 }
 
-SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::GetTexture(const std::string& filepath) {
-    if (loadedTextures.count(filepath)) return &loadedTextures[filepath];
-    if (textures.count(filepath) &&
-        textures[filepath].wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        loadedTextures[filepath] = textures[filepath].get();
-        textures.erase(filepath);
-        return &loadedTextures[filepath];
-    }
-    return nullptr;
+SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::GetTexture(const std::string& path) {
+    if (loadedTextures.count(path)) return &loadedTextures[path];
+    auto it = textures.find(path);
+    if (it == textures.end()) return nullptr;  // not requested
+    loadedTextures[path] = it->second.get();   // blocks until ready
+    textures.erase(it);
+    return &loadedTextures[path];
 }
