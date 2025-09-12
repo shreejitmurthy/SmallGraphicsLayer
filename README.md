@@ -14,7 +14,7 @@ cmake --build .
 Currently, SGL can do the following:
 - Clear screen/buffer
 - Primitive drawing
-- Asynchronous assset loading and fetching
+- Asynchronous assset loading and fetching (it kinda sucks right now, but it works)
 - Sprite drawing (batching in the near future)
 
 >[!IMPORTANT]
