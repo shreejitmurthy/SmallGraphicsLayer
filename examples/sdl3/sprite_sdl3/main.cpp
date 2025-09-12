@@ -27,14 +27,14 @@ int main() {
 
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
-    
-    sgl::AssetManager am;
-    am.Request("examples/sdl3/sprite_sdl3/freaker.png", sgl::AssetType::Texture);
-    sgl::Texture* texture = am.GetTexture("examples/sdl3/sprite_sdl3/freaker.png");
-    sgl::Sprite sprite(texture->GetData());
-    texture->Free();
 
-    
+    std::string path = "examples/sdl3/sprite_sdl3/freaker.png";
+
+    sgl::AssetManager am;
+    am.Request(path, sgl::AssetType::Texture);
+    sgl::Texture* texture = am.GetTexture(path);
+    sgl::Sprite sprite(texture->GetData());
+
     SDL_Event event;
 
     while (open) {
