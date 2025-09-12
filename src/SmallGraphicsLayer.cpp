@@ -1,5 +1,5 @@
 #include "SGL/SmallGraphicsLayer.hpp"
-#include "SGL/Utils.hpp"
+// #include "SGL/Utils.hpp"  // was causing duplicate symbol issues
 
 #if defined(WINDOW_SAPP) && defined(__APPLE__) && defined(__MACH__)
     #include <sokol/sokol_app.h>
