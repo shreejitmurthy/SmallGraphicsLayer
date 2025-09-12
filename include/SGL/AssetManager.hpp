@@ -31,20 +31,16 @@ typedef struct Texture {
 
 class AssetManager {
 public:
-    void Request(const std::string& filepath, AssetType type = AssetType::File);
-    
-    // template getter, but i honestly much prefer the enforced getters
-    template<typename T>
-    T* Get(const std::string& filepath);
+    static void Request(const std::string& filepath, AssetType type = AssetType::File);
 
-    File* GetFile(const std::string& filepath);
-    Texture* GetTexture(const std::string& path);
+    // enforced getters are better than template getter
+    static File* GetFile(const std::string& filepath);
+    static Texture* GetTexture(const std::string& path);
 private:
-    std::unordered_map<std::string, std::future<File>> files;
-    std::unordered_map<std::string, std::future<Texture>> textures;
-    std::unordered_map<std::string, File> loadedFiles;
-    // std::unordered_map<std::string, Texture> loadedTextures;
-
-    std::unordered_map<std::string, std::shared_ptr<Texture>> loadedTextures;
+    static std::unordered_map<std::string, std::future<File>> s_files;
+    static std::unordered_map<std::string, File> s_loadedFiles;
+    
+    static std::unordered_map<std::string, std::future<Texture>> s_textures;
+    static std::unordered_map<std::string, std::shared_ptr<Texture>> s_loadedTextures;
 };
 }

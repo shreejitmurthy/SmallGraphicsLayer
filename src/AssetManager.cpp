@@ -3,6 +3,11 @@
 
 #include "stb_image.h"
 
+std::unordered_map<std::string, std::future<SmallGraphicsLayer::File>> SmallGraphicsLayer::AssetManager::s_files{};
+std::unordered_map<std::string, SmallGraphicsLayer::File> SmallGraphicsLayer::AssetManager::s_loadedFiles{};
+std::unordered_map<std::string, std::future<SmallGraphicsLayer::Texture>> SmallGraphicsLayer::AssetManager::s_textures{};
+std::unordered_map<std::string, std::shared_ptr<SmallGraphicsLayer::Texture>> SmallGraphicsLayer::AssetManager::s_loadedTextures{};
+
 void SmallGraphicsLayer::Texture::Free() {
     stbi_image_free(data);
 }
@@ -42,11 +47,11 @@ struct TextureDeleter {
 void SmallGraphicsLayer::AssetManager::Request(const std::string& filepath, AssetType type) {
     switch (type) {
         case AssetType::File:
-            files[filepath] = std::async(std::launch::async, LoadFile, filepath);
+            s_files[filepath] = std::async(std::launch::async, LoadFile, filepath);
             break;
         
         case AssetType::Texture:
-            textures[filepath] = std::async(std::launch::async, LoadTexture, filepath);
+            s_textures[filepath] = std::async(std::launch::async, LoadTexture, filepath);
             break;
 
         default:
@@ -55,23 +60,13 @@ void SmallGraphicsLayer::AssetManager::Request(const std::string& filepath, Asse
     }
 }
 
-template<>
-SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLayer::File>(const std::string& filepath) {
-    return GetFile(filepath);
-}
-
-template<>
-SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::Get<SmallGraphicsLayer::Texture>(const std::string& filepath) {
-    return GetTexture(filepath);
-}
-
 SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::GetFile(const std::string& filepath) {
-    if (loadedFiles.count(filepath)) return &loadedFiles[filepath];
-    if (files.count(filepath) &&
-        files[filepath].wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        loadedFiles[filepath] = files[filepath].get();
-        files.erase(filepath);
-        return &loadedFiles[filepath];
+    if (s_loadedFiles.count(filepath)) return &s_loadedFiles[filepath];
+    if (s_files.count(filepath) &&
+        s_files[filepath].wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        s_loadedFiles[filepath] = s_files[filepath].get();
+        s_files.erase(filepath);
+        return &s_loadedFiles[filepath];
     }
     return nullptr;
 }
@@ -84,23 +79,23 @@ static std::shared_ptr<SmallGraphicsLayer::Texture> make_managed_texture(SmallGr
 
 SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::GetTexture(const std::string& path) {
     // check if already cached
-    if (auto it = loadedTextures.find(path); it != loadedTextures.end()) {
+    if (auto it = s_loadedTextures.find(path); it != s_loadedTextures.end()) {
         return it->second.get();
     }
 
     // Was it requested?
-    auto pit = textures.find(path);
-    if (pit == textures.end()) {
+    auto pit = s_textures.find(path);
+    if (pit == s_textures.end()) {
         return nullptr;  // not requested
     }
 
     Texture decoded = pit->second.get();
-    textures.erase(pit);
+    s_textures.erase(pit);
 
     // wrap in shared_ptr with deleter so pixels are freed automatically
     auto handle = make_managed_texture(std::move(decoded));
     Texture* raw = handle.get();
-    loadedTextures.emplace(path, std::move(handle));
+    s_loadedTextures.emplace(path, std::move(handle));
 
     return raw;
 }
