@@ -30,9 +30,10 @@ int main() {
 
     std::string path = "examples/sdl3/sprite_sdl3/freaker.png";
 
+    // The asset manager handles async resource loading and freeing. Don't free the memory yourself.
     sgl::AssetManager am;
     am.Request(path, sgl::AssetType::Texture);
-    sgl::Texture* texture = am.GetTexture(path);
+    auto texture = am.GetTexture(path);
     sgl::Sprite sprite(texture->GetData());
 
     SDL_Event event;
