@@ -26,6 +26,19 @@ SmallGraphicsLayer::Texture LoadTexture(const std::string& filepath) {
     return out;
 }
 
+
+// custom deleter that frees the stb buffer then deletes the Texture
+struct TextureDeleter {
+    void operator()(SmallGraphicsLayer::Texture* t) const noexcept {
+        if (!t) return;
+        if (t->data) {
+            stbi_image_free(t->data);
+            t->data = nullptr; // prevent accidental double free if someone *does* call Free()
+        }
+        delete t;
+    }
+};
+
 void SmallGraphicsLayer::AssetManager::Request(const std::string& filepath, AssetType type) {
     switch (type) {
         case AssetType::File:
@@ -63,11 +76,32 @@ SmallGraphicsLayer::File* SmallGraphicsLayer::AssetManager::GetFile(const std::s
     return nullptr;
 }
 
-SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::GetTexture(const std::string& path) {
-    if (loadedTextures.count(path)) return &loadedTextures[path];
-    auto it = textures.find(path);
-    if (it == textures.end()) return nullptr;  // not requested
-    loadedTextures[path] = it->second.get();   // blocks until ready
-    textures.erase(it);
-    return &loadedTextures[path];
+static std::shared_ptr<SmallGraphicsLayer::Texture> make_managed_texture(SmallGraphicsLayer::Texture&& src) {
+    // move/copy the plain POD Texture into heap and manage it with a custom deleter.
+    auto heapTex = new SmallGraphicsLayer::Texture(src);   // copies width/height/pointer
+    return std::shared_ptr<SmallGraphicsLayer::Texture>(heapTex, TextureDeleter{});
 }
+
+SmallGraphicsLayer::Texture* SmallGraphicsLayer::AssetManager::GetTexture(const std::string& path) {
+    // check if already cached
+    if (auto it = loadedTextures.find(path); it != loadedTextures.end()) {
+        return it->second.get();
+    }
+
+    // Was it requested?
+    auto pit = textures.find(path);
+    if (pit == textures.end()) {
+        return nullptr;  // not requested
+    }
+
+    Texture decoded = pit->second.get();
+    textures.erase(pit);
+
+    // wrap in shared_ptr with deleter so pixels are freed automatically
+    auto handle = make_managed_texture(std::move(decoded));
+    Texture* raw = handle.get();
+    loadedTextures.emplace(path, std::move(handle));
+
+    return raw;
+}
+

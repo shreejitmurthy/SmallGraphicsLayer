@@ -43,6 +43,8 @@ private:
     std::unordered_map<std::string, std::future<File>> files;
     std::unordered_map<std::string, std::future<Texture>> textures;
     std::unordered_map<std::string, File> loadedFiles;
-    std::unordered_map<std::string, Texture> loadedTextures;
+    // std::unordered_map<std::string, Texture> loadedTextures;
+
+    std::unordered_map<std::string, std::shared_ptr<Texture>> loadedTextures;
 };
 }
