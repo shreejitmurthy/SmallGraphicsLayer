@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 project(SmallGraphicsLayer VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("vendor/spdlog")
 
@@ -10,7 +10,7 @@ option(SGL_BACKEND_SAPP "Build using sokol_app" OFF)
 option(SGL_BACKEND_SDL3 "Build using SDL3" ON)
 
 # pick sources based on window backend
-set(SGL_SOURCES "src/SmallGraphicsLayer.cpp" "src/AssetManager.cpp")
+set(SGL_SOURCES "src/SmallGraphicsLayer.cpp" "src/AssetManager.cpp" "src/Log.cpp")
 if (SGL_BACKEND_SAPP)
     enable_language(OBJCXX)
     list(APPEND SGL_SOURCES src/vendor_impl.mm)
