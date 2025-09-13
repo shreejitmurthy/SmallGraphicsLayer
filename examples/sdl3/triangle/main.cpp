@@ -1,10 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-// Here, you can define whether the logger gets enabled or not
-// If you don't, only warn level and above will be printed to the console
-// If you do, you'll see info logging, such as device specifics or loading files.
-// #define SGL_ENABLE_LOGGER
 #include "SGL/SmallGraphicsLayer.hpp"
 
 namespace sgl = SmallGraphicsLayer;
@@ -27,6 +23,11 @@ int main() {
     bool open = true;
 
     SDL_GL_SetSwapInterval(1);
+
+    // Here, you can define whether the logger gets enabled or not.
+    // If you don't, only warn level and above will be printed to the console.
+    // If you do, you'll see info logging, such as device specifics or loading files.
+    sgl::EnableLogger();
 
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
