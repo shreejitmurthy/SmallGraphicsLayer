@@ -14,6 +14,8 @@
 
 namespace SmallGraphicsLayer {
 
+void EnableLogger();
+
 typedef sg_color Colour;
 
 struct Colours {

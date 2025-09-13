@@ -1,5 +1,6 @@
 #include "SGL/SmallGraphicsLayer.hpp"
 // #include "SGL/Utils.hpp"  // was causing duplicate symbol issues
+#include "SGL/Log.hpp"
 
 #if defined(WINDOW_SAPP) && defined(__APPLE__) && defined(__MACH__)
     #include <sokol/sokol_app.h>
@@ -11,17 +12,27 @@
 
 #include <sokol/sokol_gfx.h>
 
+void SmallGraphicsLayer::EnableLogger() {
+    Logger::Init(true);
+}
+
 void SmallGraphicsLayer::Device::Init(int w, int h) {
+    if (!Logger::isEnabled()) Logger::Init();
+
     sg_desc desc{};
 
     width = w;
     height = h;
 
+    std::string backend = "";
+    
     #if defined(WINDOW_SAPP)
+        Logger::Log()->info("Window Backend: sokol_app");
         swapchain = sglue_swapchain();
         desc.environment = sglue_environment();
         desc.logger.func = slog_func;
     #elif defined(WINDOW_SDL)
+        Logger::Log()->info("Window Backend: SDL");
         swapchain = {};
         swapchain.width = width;
         swapchain.height = height;
@@ -32,23 +43,46 @@ void SmallGraphicsLayer::Device::Init(int w, int h) {
         #endif
         swapchain.sample_count = 1;
         // swapchain.depth_format = SG_PIXELFORMAT_DEPTH;
-    // TODO: uncomment this, ts *was* pmo
+    // // TODO: uncomment this, ts *was* pmo
     // #else
     //     #error "No window backend defined! Define WINDOW_SAPP or WINDOW_SDL."
     #endif
 
-        sg_setup(&desc);
+    switch (sg_query_backend()) {
+        case SG_BACKEND_GLCORE:
+            backend = "OpenGL";
+            break;
+        case SG_BACKEND_D3D11:
+            backend = "D3D11";
+            break;
+        case SG_BACKEND_METAL_MACOS:
+        case SG_BACKEND_METAL_IOS:
+        case SG_BACKEND_METAL_SIMULATOR:
+            backend = "Metal";
+            break;
+        
+        case SG_BACKEND_WGPU:
+            backend = "WebGPU";
+            break;
+        default:
+            backend = "Other";
+    }
 
-        pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
+    Logger::Log()->info("Graphics Backend: {}", backend);
+
+    sg_setup(&desc);
+
+    pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
 }
 
 void SmallGraphicsLayer::Device::Clear(Colour clear_col) {
     pass_action.colors[0].clear_value = clear_col;
 
-    sg_begin_pass((sg_pass){
-        .action    = pass_action,
-        .swapchain = swapchain
-    });
+    sg_pass pass = {};
+    pass.action = pass_action;
+    pass.swapchain = swapchain;
+
+    sg_begin_pass(&pass);
 }
 
 void SmallGraphicsLayer::Device::Refresh() {
@@ -166,8 +200,6 @@ SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     ibuf_desc.usage.index_buffer = true;
     ibuf = sg_make_buffer(ibuf_desc);
 
-    // stbi_image_free(pixels);
-
     sg_shader shd = sg_make_shader(sprite_main_shader_desc(sg_query_backend()));
 
     sg_pipeline_desc pip_desc = {};
@@ -196,8 +228,7 @@ SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     bindings.samplers[SMP_sprite_smp] = smp;
 }
 
-void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale)
-{
+void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
     params.mvp = Math::Mat4::ortho(0.0f, 800, 600, 0.0f, -1.0f, 1.0f);
 
     params.mvp *= Math::Mat4::translate({ position.x - origin.x, position.y - origin.y, 0.0f });
