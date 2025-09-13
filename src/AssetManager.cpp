@@ -1,5 +1,6 @@
 #include "SGL/AssetManager.hpp"
 #include "SGL/Utils.hpp"
+#include "SGL/Log.hpp"
 
 #include "stb_image.h"
 
@@ -23,7 +24,8 @@ SmallGraphicsLayer::Texture LoadTexture(const std::string& filepath) {
     int w, h, channels;
     stbi_uc* pixels = stbi_load(SmallGraphicsLayer::Utils::FindPathUpwards(filepath).c_str(), &w, &h, &channels, 4);
     if (pixels != nullptr) {
-        std::cout << "Loaded sprite at: " <<SmallGraphicsLayer::Utils::FindPathUpwards(filepath).c_str() << std::endl;
+        // std::cout << "Loaded sprite at: " <<SmallGraphicsLayer::Utils::FindPathUpwards(filepath).c_str() << std::endl;
+        SmallGraphicsLayer::Logger::Log()->info("Loaded texture at: {}", filepath);
     }
     out.data = pixels;
     out.width = w;

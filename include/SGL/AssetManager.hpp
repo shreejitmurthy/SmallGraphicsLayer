@@ -43,4 +43,4 @@ private:
     static std::unordered_map<std::string, std::future<Texture>> s_textures;
     static std::unordered_map<std::string, std::shared_ptr<Texture>> s_loadedTextures;
 };
-}
+}  // namespace SmallGraphicsLayer
