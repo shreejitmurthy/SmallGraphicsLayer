@@ -59,7 +59,7 @@ int main() {
 
         // Draw the sprite in the centre of the screen
         // Sprites draw from the top-left of the image, but this
-        // is altered by the second `origin` parameter.
+        // can be altered by the second `origin` parameter.
         sprite.Draw({400, 300}, {sprite.Width() / 2, sprite.Height() / 2});
 
         device.Refresh();
