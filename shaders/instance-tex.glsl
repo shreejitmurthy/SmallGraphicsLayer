@@ -1,4 +1,4 @@
-@ctype mat4 glm::mat4
+@ctype mat4 SmallGraphicsLayer::Math::Mat4
 
 @vs vs
 

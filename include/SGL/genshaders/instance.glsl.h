@@ -54,7 +54,7 @@
 #define SMP_instance_smp (0)
 #pragma pack(push,1)
 SOKOL_SHDC_ALIGN(16) typedef struct instance_params_t {
-    glm::mat4 proj;
+    SmallGraphicsLayer::Math::Mat4 proj;
 } instance_params_t;
 #pragma pack(pop)
 /*
