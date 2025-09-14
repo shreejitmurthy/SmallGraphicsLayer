@@ -60,7 +60,6 @@ void SmallGraphicsLayer::Device::Init(int w, int h) {
         case SG_BACKEND_METAL_SIMULATOR:
             backend = "Metal";
             break;
-        
         case SG_BACKEND_WGPU:
             backend = "WebGPU";
             break;
@@ -246,3 +245,4 @@ void SmallGraphicsLayer::Sprite::Destroy() {
     sg_destroy_image(image);
     sg_destroy_pipeline(pipeline);
 }
+

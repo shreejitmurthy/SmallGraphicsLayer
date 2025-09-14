@@ -6,6 +6,7 @@
 
 #include "genshaders/attributes.glsl.h"
 #include "genshaders/ssprite.glsl.h"
+#include "genshaders/instance.glsl.h"
 
 #include <cstdint>
 #include <vector>
@@ -127,9 +128,53 @@ private:
 
 // TODO: CPU-side sprite batching (like libGDX) and GPU instancing, gives more options.
 
+struct InstanceData {
+    Math::Vec2 offset;      // world-space X/Y
+    Math::Vec2 uvOffset;    // which frame in the atlas
+    Math::Vec2 worldScale;  // size of sprite in world eg. 64x32
+    Math::Vec2 uvScale;     // size of sprite in uv space
+};
+
+inline Math::Vec2 get_tile_uv(Math::Vec2 tileIndex, Math::Vec2 tileSize, Math::Vec2 atlasSize) {
+    return Math::Vec2(tileIndex.x * tileSize.x / float(atlasSize.x), tileIndex.y * tileSize.y / float(atlasSize.y));
+}
+
 // Instanced sprite renderer, uses one draw call for many sprites
 class InstancedSpriteRenderer : public Renderer {
 public:
-    InstancedSpriteRenderer();
+    InstanceData createInstanceData(Math::Vec2 offset, Math::Vec2 tile_index, Math::Vec2 tile_size = {0, 0}) {
+        if (tile_size == Math::Vec2(0, 0)) {
+            tile_size = this->tile_size;
+        }
+
+        InstanceData ret;
+        ret.offset = offset;
+        ret.worldScale = tile_size;
+        ret.uvOffset = get_tile_uv(tile_index, tile_size, Math::Vec2(w, h));
+        ret.uvScale = Math::Vec2(
+            tile_size.x / static_cast<float>(w),
+            tile_size.y / static_cast<float>(h)
+        );
+        return ret;
+    }
+
+    void set_instance_data(const std::vector<InstanceData>& data) {
+        instances = data;
+        dirty = true;
+    }
+
+    void set_instance_data(std::vector<InstanceData>&& data) {
+        instances = std::move(data);
+        dirty = true;
+    }
+
+    InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tile_size);
+private:
+    unsigned int w, h, channels;
+    instance_params_t vs_params;
+    Math::Vec2 tile_size;
+    std::vector<InstanceData> instances;
+    bool dirty = false;
+    bool initialised = false;
 };
-};
+}
