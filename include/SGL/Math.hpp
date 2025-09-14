@@ -4,6 +4,7 @@
 #include <algorithm>
 
 namespace SmallGraphicsLayer::Math {
+
 struct Vec2 {
     float x{0}, y{0};
 
@@ -15,6 +16,7 @@ struct Vec2 {
     constexpr Vec2 operator-(const Vec2& r) const noexcept { return {x - r.x, y - r.y}; }
     constexpr Vec2 operator-() const noexcept { return {-x, -y}; }
 
+    constexpr bool operator==(const Vec2& r) const noexcept { return x == r.x && y == r.y; }
     constexpr Vec2& operator+=(const Vec2& r) noexcept { x += r.x; y += r.y; return *this; }
     constexpr Vec2& operator-=(const Vec2& r) noexcept { x -= r.x; y -= r.y; return *this; }
 
@@ -42,6 +44,56 @@ struct Vec2 {
     constexpr Vec2 perp() const noexcept { return {-y, x}; }
 
     static constexpr Vec2 lerp(const Vec2& a, const Vec2& b, float t) noexcept {
+        return {a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t};
+    }
+};
+
+struct iVec2 {
+    int x{0}, y{0};
+
+    constexpr iVec2() = default;
+    constexpr iVec2(int x_, int y_) : x(x_), y(y_) {}
+
+    // equality
+    constexpr bool operator==(const iVec2& r) const noexcept { return x == r.x && y == r.y; }
+
+    // basic arithmetic
+    constexpr iVec2 operator+(const iVec2& r) const noexcept { return {x + r.x, y + r.y}; }
+    constexpr iVec2 operator-(const iVec2& r) const noexcept { return {x - r.x, y - r.y}; }
+    constexpr iVec2 operator-() const noexcept { return {-x, -y}; }
+
+    constexpr bool operator==(const iVec2& r) noexcept { return x == r.x && y == r.y; }
+    constexpr iVec2& operator+=(const iVec2& r) noexcept { x += r.x; y += r.y; return *this; }
+    constexpr iVec2& operator-=(const iVec2& r) noexcept { x -= r.x; y -= r.y; return *this; }
+
+    // scalar ops (integer)
+    constexpr iVec2 operator*(int s) const noexcept { return {x * s, y * s}; }
+    constexpr iVec2& operator*=(int s) noexcept { x *= s; y *= s; return *this; }
+
+    constexpr iVec2 operator/(int s) const noexcept { return {x / s, y / s}; }
+    constexpr iVec2& operator/=(int s) noexcept { x /= s; y /= s; return *this; }
+    friend constexpr iVec2 operator*(int s, const iVec2& v) noexcept { return {v.x * s, v.y * s}; }
+
+    // helpers
+    constexpr int dot(const iVec2& r) const noexcept { return x * r.x + y * r.y; }
+    constexpr int length2() const noexcept { return dot(*this); }
+    double length() const noexcept { return std::sqrt(static_cast<double>(length2())); }
+
+    // 90 degree CCW perpendicular
+    constexpr iVec2 perp() const noexcept { return {-y, x}; }
+
+    // conversions to float vector for real-valued ops
+    explicit constexpr operator Vec2() const noexcept { return Vec2{static_cast<float>(x), static_cast<float>(y)}; }
+
+    // real-valued helpers that return Vec2
+    Vec2 normalized(double eps = 1e-6) const noexcept {
+        double len2 = static_cast<double>(length2());
+        if (len2 <= eps * eps) return {0.f, 0.f};
+        double inv = 1.0 / std::sqrt(len2);
+        return {static_cast<float>(x * inv), static_cast<float>(y * inv)};
+    }
+
+    static Vec2 lerp(const iVec2& a, const iVec2& b, float t) noexcept {
         return {a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t};
     }
 };
@@ -91,10 +143,10 @@ struct Vec3 {
     }
 };
 
+// Matrix4x4
 struct Mat4 {
-    float m[16]; // column-major (OpenGL style)
+    float m[16];  // column-major (OpenGL style)
 
-    // --- Constructors ---
     constexpr Mat4() : m{0} {}
     constexpr explicit Mat4(float diag) : m{0} {
         m[0] = m[5] = m[10] = m[15] = diag;
@@ -102,11 +154,9 @@ struct Mat4 {
 
     static constexpr Mat4 identity() { return Mat4(1.0f); }
 
-    // --- Indexing ---
     constexpr float& operator()(int row, int col) { return m[col * 4 + row]; }
     constexpr float  operator()(int row, int col) const { return m[col * 4 + row]; }
 
-    // --- Matrix arithmetic ---
     constexpr Mat4 operator+(const Mat4& r) const {
         Mat4 res;
         for (int i = 0; i < 16; i++) res.m[i] = m[i] + r.m[i];
@@ -123,7 +173,6 @@ struct Mat4 {
         return res;
     }
 
-    // matrix multiply
     constexpr Mat4 operator*(const Mat4& r) const {
         Mat4 res;
         for (int col = 0; col < 4; col++) {
@@ -142,7 +191,6 @@ struct Mat4 {
         return *this;
     }
 
-    // transform helpers
     constexpr Vec3 multiplyPoint(const Vec3& v) const {
         float x = v.x * (*this)(0, 0) + v.y * (*this)(0, 1) + v.z * (*this)(0, 2) + (*this)(0, 3);
         float y = v.x * (*this)(1, 0) + v.y * (*this)(1, 1) + v.z * (*this)(1, 2) + (*this)(1, 3);
@@ -238,5 +286,4 @@ struct Mat4 {
         return ortho(-hw, hw, -hh, hh, zNear, zFar, depthZeroToOne);
     }
 };
-
-}
+}  // namespace SmallGraphicsLayer::Math
