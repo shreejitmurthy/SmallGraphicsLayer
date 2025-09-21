@@ -32,9 +32,11 @@ int main() {
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
 
-    std::string shader = sgl::Utils::LoadFileIntoString("examples/sdl3/program/fragment.glsl");
+    // Read the shader file to get an idea of how to integrate it with SGL.
+    std::string frag = sgl::Utils::LoadFileIntoString("examples/sdl3/program/fire.frag");
+    auto program = sgl::AttributeProgram(frag);
 
-    sgl::AttributeBuilder ab(device.FrameSize());
+    sgl::AttributeBuilder ab(device.FrameSize(), program);
     ab.Begin(sgl::Primitives::Quad);
     ab.Vertex({600, 450}, sgl::Colours::Red);
     ab.Vertex({200, 450}, sgl::Colours::Green);
