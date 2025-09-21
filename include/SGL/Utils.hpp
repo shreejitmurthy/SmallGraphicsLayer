@@ -20,7 +20,7 @@ fs::path FindPathUpwards(const fs::path& targetPath, fs::path startDir = fs::cur
             return fs::absolute(candidate);
         }
         if (startDir == startDir.root_path()) {
-            Logger::Log()->error("Target {} not found", targetPath);
+            Logger::Log()->error("[Utils::FindPathUpwards] Failed to locate: {}", targetPath);
             return {};
         }
         startDir = startDir.parent_path();
@@ -33,11 +33,11 @@ std::string LoadFileIntoString(const std::string& filepath) {
     fs::path foundPath = FindPathUpwards(filepath);
 
     if (foundPath.empty()) {
-        return std::string("[LoadFile] Failed to locate: ") + filepath;
+        return nullptr;
     }
     std::ifstream in(foundPath, std::ios::in | std::ios::binary);
     if (!in) {
-        return std::string("[LoadFile] Failed to open: ") + foundPath.string();
+        return nullptr;
     }
     std::ostringstream ss;
     ss << in.rdbuf();
