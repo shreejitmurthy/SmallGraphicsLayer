@@ -20,6 +20,8 @@ void EnableLogger();
 typedef sg_color Colour;
 
 struct Colours {
+    static constexpr Colour Background = {0.15, 0.15, 0.2, 1};
+
     static constexpr Colour White  = {1, 1, 1, 1};
     static constexpr Colour Red    = {1, 0, 0, 1};
     static constexpr Colour Green  = {0, 1, 0, 1};
@@ -31,7 +33,7 @@ class Device {
 public:
     // Consider a singleton accessor pattern in the future
     void Init(/* SGLFlags flags, */ int w = 0, int h = 0);
-    void Clear(Colour clear_col = {0.15f, 0.15f, 0.2f, 1.0f});
+    void Clear(Colour clear_col = Colours::Background);
     void Refresh();
     void Shutdown();
 
@@ -43,9 +45,6 @@ private:
     sg_pass_action pass_action;
     sg_swapchain swapchain;
 };
-
-typedef Math::Vec3 Position;
-struct Index { std::uint16_t x, y, z; };
 
 enum class RendererType {
     Attribute,  // basic attributes
@@ -64,17 +63,34 @@ protected:
     sg_bindings bindings = {};
 };
 
+// Custom shader program for AttributeBuilder
+class AttributeProgram {
+public:
+    AttributeProgram(const std::string& frag);
+    sg_shader_desc GetDesc() { return desc; }
+private:
+    sg_shader_desc desc = {};
+};
+
 enum class Primitives {
     Triangle = 3,
     Quad
 };
 
+typedef Math::Vec3 Position;
+struct Index { std::uint16_t x, y, z; };
+
 // Basic primitve and attribute renderer
 class AttributeBuilder : public Renderer {
 public:
-    AttributeBuilder(Math::Vec2 framebuffer_size, bool useNDC = false) { 
-        framebuf = framebuffer_size;
+    AttributeBuilder(Math::Vec2 framebufferSize, bool useNDC = false) : program("") {
+        framebuf = framebufferSize;
         enable_ndc = useNDC;
+    }
+    AttributeBuilder(Math::Vec2 framebufferSize, AttributeProgram fragmentProgram, bool useNDC = false) : program(fragmentProgram) {
+        framebuf = framebufferSize;
+        enable_ndc = useNDC;
+        use_custom_fragment = true;
     }
     AttributeBuilder& Begin(Primitives primative);
     AttributeBuilder& Vertex(Position pos, Colour col, bool useNDC = false);
@@ -99,6 +115,9 @@ private:
     std::vector<std::uint16_t> indices;
 
     bool enable_ndc;
+
+    bool use_custom_fragment;
+    AttributeProgram program;
 
     Math::Vec2 framebuf;
 

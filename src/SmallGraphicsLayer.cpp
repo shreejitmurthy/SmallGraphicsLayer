@@ -93,17 +93,42 @@ void SmallGraphicsLayer::Device::Shutdown() {
     sg_shutdown();
 }
 
+SmallGraphicsLayer::AttributeProgram::AttributeProgram(const std::string& frag) {
+    if (frag != "") {
+        desc.vertex_func.source = 
+            "#version 410\n"
+            "layout(location=0) in vec3 position;\n"
+            "layout(location=1) in vec4 colour0;\n"
+            "out vec4 colour;\n"
+            "void main() {\n"
+            "    gl_Position = vec4(position.xyz, 1.0);\n"
+            "    colour = colour0;\n"
+            "}";
+        desc.fragment_func.source = frag.c_str();
+    }
+}
+
 SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primitive) {
     elements = static_cast<int>(primitive);
 
-    shader = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
+    if (use_custom_fragment) {
+        shader = sg_make_shader(program.GetDesc());
+        sg_pipeline_desc pip_desc = {};
+        pip_desc.shader = shader;
+        pip_desc.index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE;
+        pip_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT3;
+        pip_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT4;
+        pipeline = sg_make_pipeline(&pip_desc);
+    } else {
+        shader = sg_make_shader(attributes_main_shader_desc(sg_query_backend()));
 
-    sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = shader;
-    pip_desc.index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE;
-    pip_desc.layout.attrs[ATTR_attributes_main_position].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_attributes_main_colour0].format = SG_VERTEXFORMAT_FLOAT4;
-    pipeline = sg_make_pipeline(&pip_desc);
+        sg_pipeline_desc pip_desc = {};
+        pip_desc.shader = shader;
+        pip_desc.index_type = elements == 4 ? SG_INDEXTYPE_UINT16 : SG_INDEXTYPE_NONE;
+        pip_desc.layout.attrs[ATTR_attributes_main_position].format = SG_VERTEXFORMAT_FLOAT3;
+        pip_desc.layout.attrs[ATTR_attributes_main_colour0].format = SG_VERTEXFORMAT_FLOAT4;
+        pipeline = sg_make_pipeline(&pip_desc);
+    }
 
     // 4 + 2 indices
     if (primitive == Primitives::Quad) elements += 2;
@@ -245,4 +270,3 @@ void SmallGraphicsLayer::Sprite::Destroy() {
     sg_destroy_image(image);
     sg_destroy_pipeline(pipeline);
 }
-
