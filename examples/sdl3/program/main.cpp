@@ -4,9 +4,10 @@
 #include "SGL/SmallGraphicsLayer.hpp"
 #include "SGL/Utils.hpp"
 
-#include <iostream>
-
 namespace sgl = SmallGraphicsLayer;
+
+constexpr int screenWidth = 800;
+constexpr int screenHeight = 600;
 
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -17,9 +18,6 @@ int main() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    const int screenWidth = 800;
-    const int screenHeight = 600;
 
     SDL_Window* window = SDL_CreateWindow("program (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
@@ -38,8 +36,10 @@ int main() {
 
     sgl::AttributeBuilder ab(device.FrameSize(), program);
     ab.Begin(sgl::Primitives::Quad);
-    ab.Vertex({screenWidth, 0}).Vertex({screenWidth, screenHeight});
-    ab.Vertex({0, screenHeight}).Vertex({0, 0});
+    ab.Vertex({screenWidth, 0});
+    ab.Vertex({screenWidth, screenHeight});
+    ab.Vertex({0, screenHeight});
+    ab.Vertex({0, 0});
     // triangle 1 and 2
     ab.Index({0, 1, 2}).Index({0, 2, 3});
     ab.End();
@@ -65,7 +65,7 @@ int main() {
         }
 
         device.Clear();
-        program.ApplyDefaultUniforms({screenWidth, screenHeight}, (float)SDL_GetTicks() / 1000);
+        program.ApplyDefaultUniforms({screenWidth, screenHeight}, static_cast<float>(SDL_GetTicks()) / 1000);
         ab.Draw(program);
         device.Refresh();
 

@@ -5,6 +5,9 @@
 
 namespace sgl = SmallGraphicsLayer;
 
+constexpr int screenWidth = 800;
+constexpr int screenHeight = 600;
+
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         return 1;
@@ -14,9 +17,6 @@ int main() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-    const int screenWidth = 800;
-    const int screenHeight = 600;
 
     SDL_Window* window = SDL_CreateWindow("triangle (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
