@@ -21,7 +21,7 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
 
-    SDL_Window* window = SDL_CreateWindow("triangle (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("program (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     bool open = true;
 
@@ -38,10 +38,8 @@ int main() {
 
     sgl::AttributeBuilder ab(device.FrameSize(), program);
     ab.Begin(sgl::Primitives::Quad);
-    ab.Vertex({600, 450}, sgl::Colours::Red);
-    ab.Vertex({200, 450}, sgl::Colours::Green);
-    ab.Vertex({200, 150}, sgl::Colours::Blue);
-    ab.Vertex({600, 150}, sgl::Colours::Yellow);
+    ab.Vertex({screenWidth, 0}).Vertex({screenWidth, screenHeight});
+    ab.Vertex({0, screenHeight}).Vertex({0, 0});
     // triangle 1 and 2
     ab.Index({0, 1, 2}).Index({0, 2, 3});
     ab.End();
@@ -67,7 +65,8 @@ int main() {
         }
 
         device.Clear();
-        ab.Draw();
+        program.ApplyDefaultUniforms({screenWidth, screenHeight}, (float)SDL_GetTicks() / 1000);
+        ab.Draw(program);
         device.Refresh();
 
         SDL_GL_SwapWindow(window);
