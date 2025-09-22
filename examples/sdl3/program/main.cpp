@@ -33,7 +33,7 @@ int main() {
     device.Init(screenWidth, screenHeight);
 
     // Read the shader file to get an idea of how to integrate it with SGL.
-    std::string frag = sgl::Utils::LoadFileIntoString("examples/sdl3/program/fire.frag");
+    std::string frag = sgl::Utils::LoadFileIntoString("examples/sdl3/program/flame.frag");
     auto program = sgl::AttributeProgram(frag);
 
     sgl::AttributeBuilder ab(device.FrameSize(), program);
