@@ -10,8 +10,6 @@
 
 #include <array>
 
-#include <sokol/sokol_gfx.h>
-
 void SmallGraphicsLayer::EnableLogger() {
     Logger::Init(true);
 }
@@ -229,8 +227,8 @@ SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     img_desc.height = h;
     img_desc.sample_count = 1;
     img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
-    img_desc.data.subimage[0][0].ptr = pixels;
-    img_desc.data.subimage[0][0].size = static_cast<std::size_t>(w * h * 4);
+    img_desc.data.mip_levels[0].ptr = pixels;
+    img_desc.data.mip_levels[0].size = static_cast<std::size_t>(w * h * 4);
     image = sg_make_image(img_desc);
 
     sg_sampler_desc smp_desc = {};
