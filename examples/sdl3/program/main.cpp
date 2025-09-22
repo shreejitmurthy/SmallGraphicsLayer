@@ -19,7 +19,7 @@ int main() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window* window = SDL_CreateWindow("custom shader (program) (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+    SDL_Window* window = SDL_CreateWindow("custom program (shader) (SDL3 window)", screenWidth, screenHeight, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     bool open = true;
 

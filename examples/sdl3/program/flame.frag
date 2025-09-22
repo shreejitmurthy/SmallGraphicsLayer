@@ -1,16 +1,16 @@
 #version 410
 
-// SGL's AttributeBuilder outputs one Vector2 "TexCoord".
-in vec2 TexCoord;
-
-// Vector4 for the colour must be outputted, naming doesn't matter.
-out vec4 FragColor;
-
 // These are applied by SGL using AttributeBuilder::ApplyDefaultUniforms(),
 // The values ie resolution and time must be calculated yourself depending on your windowing backend.
 // The examples show a way of doing this.
 uniform vec2 iResolution;
 uniform float iTime;
+
+// SGL's AttributeBuilder outputs one Vector2 "TexCoord".
+in vec2 TexCoord;
+
+// Vector4 for the colour must be outputted, naming doesn't matter.
+out vec4 FragColor;
 
 // https://www.shadertoy.com/view/MdX3zr
 float noise(vec3 p) {
