@@ -94,21 +94,42 @@ void SmallGraphicsLayer::Device::Shutdown() {
 }
 
 SmallGraphicsLayer::AttributeProgram::AttributeProgram(const std::string& frag) {
-    if (frag != "") {
+    if (!frag.empty()) {
+        frag_src_storage = frag;
+        applied_uniforms = false;
         desc.vertex_func.source = 
             "#version 410\n"
             "layout(location=0) in vec3 position;\n"
             "layout(location=1) in vec4 colour0;\n"
-            "out vec4 colour;\n"
+            "out vec2 TexCoord;\n"
             "void main() {\n"
             "    gl_Position = vec4(position.xyz, 1.0);\n"
-            "    colour = colour0;\n"
+            "    TexCoord = vec2(colour0.x, colour0.y);\n"
             "}";
-        desc.fragment_func.source = frag.c_str();
+        desc.fragment_func.source = frag_src_storage.c_str();
+        desc.uniform_blocks[0].stage = SG_SHADERSTAGE_FRAGMENT;
+        desc.uniform_blocks[0].size  = sizeof(fs_params);
+
+        desc.uniform_blocks[0].glsl_uniforms[0].glsl_name = "iResolution";
+        desc.uniform_blocks[0].glsl_uniforms[0].type = SG_UNIFORMTYPE_FLOAT2;
+
+        desc.uniform_blocks[0].glsl_uniforms[1].glsl_name = "iTime";
+        desc.uniform_blocks[0].glsl_uniforms[1].type = SG_UNIFORMTYPE_FLOAT;
+
+        params.resolution[0] = 0;
+        params.resolution[1] = 0;
+        params.time = 0;
     }
 }
 
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primitive) {
+void SmallGraphicsLayer::AttributeProgram::ApplyDefaultUniforms(Math::Vec2 resolution, float time) {
+    params.resolution[0] = resolution.x;
+    params.resolution[1] = resolution.y;
+    params.time = time;
+    applied_uniforms = true;
+}
+
+SmallGraphicsLayer::AttributeBuilder &SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primitive) {
     elements = static_cast<int>(primitive);
 
     if (use_custom_fragment) {
@@ -176,6 +197,17 @@ void SmallGraphicsLayer::AttributeBuilder::End() {
 void SmallGraphicsLayer::AttributeBuilder::Draw() {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
+    sg_draw(0, elements, 1);
+}
+
+void SmallGraphicsLayer::AttributeBuilder::Draw(AttributeProgram p) {
+    sg_apply_pipeline(pipeline);
+    sg_apply_bindings(&bindings);
+        if (use_custom_fragment) {
+        if (!p.HasAppliedUniforms()) p.ApplyDefaultUniforms();
+        auto params = p.GetUniformParams();
+        sg_apply_uniforms(0, SG_RANGE(params));
+    }
     sg_draw(0, elements, 1);
 }
 

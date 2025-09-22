@@ -12,6 +12,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <unordered_map>
 
 namespace SmallGraphicsLayer {
 
@@ -23,10 +24,13 @@ struct Colours {
     static constexpr Colour Background = {0.15, 0.15, 0.2, 1};
 
     static constexpr Colour White  = {1, 1, 1, 1};
+    static constexpr Colour Black  = {0, 0, 0, 1};
     static constexpr Colour Red    = {1, 0, 0, 1};
     static constexpr Colour Green  = {0, 1, 0, 1};
     static constexpr Colour Blue   = {0, 0, 1, 1};
     static constexpr Colour Yellow = {1, 1, 0, 1};
+
+    static constexpr Colour Orange = {1, 0.5, 0, 1};
 };
 
 class Device {
@@ -63,13 +67,33 @@ protected:
     sg_bindings bindings = {};
 };
 
+enum class UniformType {
+    Invalid = 0,
+    Float, Float2, Float3, Float4,
+    Int, Int2, Int3, Int4,
+    Mat4
+};
+
 // Custom shader program for AttributeBuilder
 class AttributeProgram {
 public:
+    typedef struct {
+        float resolution[2];
+        float time;
+    } fs_params;
+
     AttributeProgram(const std::string& frag);
+    void ApplyDefaultUniforms(Math::Vec2 resolution = {0, 0}, float time = 0.f);
+    fs_params GetUniformParams() { return params; }
     sg_shader_desc GetDesc() { return desc; }
+    bool HasAppliedUniforms() { return applied_uniforms; }
 private:
     sg_shader_desc desc = {};
+    std::string frag_src_storage;
+    int uniform_count = 0;
+    std::unordered_map<std::string, int> uniforms;
+    fs_params params;
+    bool applied_uniforms;
 };
 
 enum class Primitives {
@@ -93,11 +117,12 @@ public:
         use_custom_fragment = true;
     }
     AttributeBuilder& Begin(Primitives primative);
-    AttributeBuilder& Vertex(Position pos, Colour col, bool useNDC = false);
+    AttributeBuilder& Vertex(Position pos, Colour col = Colours::Black, bool useNDC = false);
     AttributeBuilder& Index(Index index);
     
     void End();
     void Draw();
+    void Draw(AttributeProgram program);
     void Destroy() override;
     
     RendererType Type() const override { return RendererType::Attribute; }
@@ -128,6 +153,7 @@ private:
 // Single sprite renderer, uses one draw call per sprite
 class Sprite : public Renderer {
 public:
+    // TODO?
     Sprite(const std::string& path);
     Sprite(std::tuple<int, int, unsigned char*> data);
     void Draw(Math::Vec2 position, Math::Vec2 origin = {0, 0}, Math::Vec2 scale = {1, 1});
@@ -144,8 +170,6 @@ private:
     sprite_params_t params;
     Math::Vec2 size;
 };
-
-// TODO: CPU-side sprite batching (like libGDX) and GPU instancing, gives more options.
 
 struct InstanceData {
     Math::Vec2 offset;      // world-space X/Y
