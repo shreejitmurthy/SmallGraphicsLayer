@@ -9,16 +9,16 @@
 
 #include <array>
 
-// using namespace SmallGraphicsLayer;
+using namespace SmallGraphicsLayer;
 
-void SmallGraphicsLayer::EnableLogger() {
+void EnableLogger() {
     Logger::Init(true);
 }
 
-std::uint32_t SmallGraphicsLayer::Device::width  = 0;
-std::uint32_t SmallGraphicsLayer::Device::height = 0;
+std::uint32_t Device::width  = 0;
+std::uint32_t Device::height = 0;
 
-void SmallGraphicsLayer::Device::Init(int w, int h) {
+void Device::Init(int w, int h) {
     if (!Logger::isEnabled()) Logger::Init();
 
     sg_desc desc{};
@@ -75,7 +75,7 @@ void SmallGraphicsLayer::Device::Init(int w, int h) {
     pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
 }
 
-void SmallGraphicsLayer::Device::Clear(Colour clear_col) {
+void Device::Clear(Colour clear_col) {
     pass_action.colors[0].clear_value = clear_col;
 
     sg_pass pass = {};
@@ -85,20 +85,20 @@ void SmallGraphicsLayer::Device::Clear(Colour clear_col) {
     sg_begin_pass(&pass);
 }
 
-void SmallGraphicsLayer::Device::Refresh() {
+void Device::Refresh() {
     sg_end_pass();
     sg_commit();
 }
 
-void SmallGraphicsLayer::Device::Shutdown() {
+void Device::Shutdown() {
     sg_shutdown();
 }
 
-inline SmallGraphicsLayer::Math::Mat4 GetDefaultProjection() {
-    return SmallGraphicsLayer::Math::Mat4::ortho(0.0f, SmallGraphicsLayer::Device::Width(), SmallGraphicsLayer::Device::Height(), 0.0f, -1.0f, 1.0f);
+inline Math::Mat4 GetDefaultProjection() {
+    return Math::Mat4::ortho(0.0f, Device::Width(), Device::Height(), 0.0f, -1.0f, 1.0f);
 }
 
-SmallGraphicsLayer::AttributeProgram::AttributeProgram(const std::string& frag) {
+AttributeProgram::AttributeProgram(const std::string& frag) {
     if (!frag.empty()) {
         frag_src_storage = frag;
         applied_uniforms = false;
@@ -127,14 +127,14 @@ SmallGraphicsLayer::AttributeProgram::AttributeProgram(const std::string& frag) 
     }
 }
 
-void SmallGraphicsLayer::AttributeProgram::ApplyDefaultUniforms(Math::Vec2 resolution, float time) {
+void AttributeProgram::ApplyDefaultUniforms(Math::Vec2 resolution, float time) {
     params.resolution[0] = resolution.x;
     params.resolution[1] = resolution.y;
     params.time = time;
     applied_uniforms = true;
 }
 
-SmallGraphicsLayer::AttributeBuilder &SmallGraphicsLayer::AttributeBuilder::Begin(Primitives primitive) {
+AttributeBuilder &AttributeBuilder::Begin(Primitives primitive) {
     elements = static_cast<int>(primitive);
 
     if (use_custom_fragment) {
@@ -165,7 +165,7 @@ SmallGraphicsLayer::AttributeBuilder &SmallGraphicsLayer::AttributeBuilder::Begi
 }
 
 // should personally throw a warn if there are less than expected chunks as well
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vertex(Position pos, Colour col, bool useNDC) {
+AttributeBuilder& AttributeBuilder::Vertex(Position pos, Colour col, bool useNDC) {
     enable_ndc = useNDC;  
     Math::Vec3 position = enable_ndc ? pos : _Pixels2NDC(pos);
     std::array<float, 7> chunk = {position.x, position.y, position.z,  col.r, col.g, col.b, col.a};
@@ -174,14 +174,14 @@ SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Vert
     return *this;
 }
 
-SmallGraphicsLayer::AttributeBuilder& SmallGraphicsLayer::AttributeBuilder::Index(SmallGraphicsLayer::Index index) {
+AttributeBuilder& AttributeBuilder::Index(SmallGraphicsLayer::Index index) {
     std::array<std::uint16_t, 3> chunk = {index.x, index.y, index.z};
     indices.insert(indices.end(), chunk.begin(), chunk.end());
     chunks++;
     return *this;
 }
 
-void SmallGraphicsLayer::AttributeBuilder::End() {
+void AttributeBuilder::End() {
     if (vertices.size() > 0) {
         sg_buffer_desc vbuf_desc = {};
         vbuf_desc.size = vertices.size() * sizeof(float);
@@ -199,13 +199,13 @@ void SmallGraphicsLayer::AttributeBuilder::End() {
     }
 }
 
-void SmallGraphicsLayer::AttributeBuilder::Draw() {
+void AttributeBuilder::Draw() {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
     sg_draw(0, elements, 1);
 }
 
-void SmallGraphicsLayer::AttributeBuilder::Draw(AttributeProgram p) {
+void AttributeBuilder::Draw(AttributeProgram p) {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
         if (use_custom_fragment) {
@@ -216,14 +216,14 @@ void SmallGraphicsLayer::AttributeBuilder::Draw(AttributeProgram p) {
     sg_draw(0, elements, 1);
 }
 
-void SmallGraphicsLayer::AttributeBuilder::Destroy() {
+void AttributeBuilder::Destroy() {
     sg_destroy_shader(shader);
     sg_destroy_buffer(vbuf);
     sg_destroy_buffer(ibuf);
     sg_destroy_pipeline(pipeline);
 }
 
-SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
+Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     int w = std::get<0>(data), h = std::get<1>(data);
     unsigned char* pixels = std::get<2>(data);
 
@@ -289,7 +289,7 @@ SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     bindings.samplers[SMP_sprite_smp] = smp;
 }
 
-void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
+void Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
     params.mvp = GetDefaultProjection();
 
     params.mvp *= Math::Mat4::translate({ position.x - origin.x, position.y - origin.y, 0.0f });
@@ -301,14 +301,14 @@ void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Ma
     sg_draw(0, 6, 1);
 }
 
-void SmallGraphicsLayer::Sprite::Destroy() {
+void Sprite::Destroy() {
     sg_destroy_buffer(vbuf);
     sg_destroy_buffer(ibuf);
     sg_destroy_image(image);
     sg_destroy_pipeline(pipeline);
 }
 
-SmallGraphicsLayer::InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize) {
+InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize) {
     tile_size = tileSize;
     
 }
