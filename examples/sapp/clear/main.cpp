@@ -17,6 +17,14 @@ void frame(void) {
     device.Refresh();
 }
 
+void event(const sapp_event* e) {
+    if (e->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (e->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_request_quit();
+        }
+    }
+}
+
 void cleanup(void) {
     device.Shutdown();
 }
@@ -26,6 +34,7 @@ int main(int argc, char** argv) {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
+        .event_cb = event,
         .width = 800,
         .height = 600,
         .window_title = "clear (sapp window)",
