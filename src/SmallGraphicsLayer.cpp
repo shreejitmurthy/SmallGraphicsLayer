@@ -9,9 +9,14 @@
 
 #include <array>
 
+// using namespace SmallGraphicsLayer;
+
 void SmallGraphicsLayer::EnableLogger() {
     Logger::Init(true);
 }
+
+std::uint32_t SmallGraphicsLayer::Device::width  = 0;
+std::uint32_t SmallGraphicsLayer::Device::height = 0;
 
 void SmallGraphicsLayer::Device::Init(int w, int h) {
     if (!Logger::isEnabled()) Logger::Init();
@@ -87,6 +92,10 @@ void SmallGraphicsLayer::Device::Refresh() {
 
 void SmallGraphicsLayer::Device::Shutdown() {
     sg_shutdown();
+}
+
+inline SmallGraphicsLayer::Math::Mat4 GetDefaultProjection() {
+    return SmallGraphicsLayer::Math::Mat4::ortho(0.0f, SmallGraphicsLayer::Device::Width(), SmallGraphicsLayer::Device::Height(), 0.0f, -1.0f, 1.0f);
 }
 
 SmallGraphicsLayer::AttributeProgram::AttributeProgram(const std::string& frag) {
@@ -281,7 +290,7 @@ SmallGraphicsLayer::Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
 }
 
 void SmallGraphicsLayer::Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
-    params.mvp = Math::Mat4::ortho(0.0f, 800, 600, 0.0f, -1.0f, 1.0f);
+    params.mvp = GetDefaultProjection();
 
     params.mvp *= Math::Mat4::translate({ position.x - origin.x, position.y - origin.y, 0.0f });
     params.mvp *= Math::Mat4::scale({ size.x * scale.x, size.y * scale.y, 1.0f });
@@ -297,4 +306,9 @@ void SmallGraphicsLayer::Sprite::Destroy() {
     sg_destroy_buffer(ibuf);
     sg_destroy_image(image);
     sg_destroy_pipeline(pipeline);
+}
+
+SmallGraphicsLayer::InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize) {
+    tile_size = tileSize;
+    
 }
