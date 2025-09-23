@@ -34,7 +34,7 @@ int main() {
 
     // The boolean indicates whether to convert pixels to NDC.
     // Defaulted to false; don't pass a value at all (or just set to true) to use -1 to 1 NDC
-    sgl::AttributeBuilder ab(device.FrameSize());
+    sgl::AttributeBuilder ab(device.FrameSize(), false);
     ab.Begin(sgl::Primitives::Triangle);
     // Vertex() accepts a boolean as the last parameter, defaulted to false.
     // The boolean is for if you want to use NDC for any specific vertex, like in the first one.
