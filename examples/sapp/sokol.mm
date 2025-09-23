@@ -5,13 +5,13 @@
     #define SOKOL_GLCORE
     #define SOKOL_NO_ENTRY
     #define SOKOL_TRACE_HOOKS
-    #include "sokol/sokol_app.h"
-    #include "sokol/sokol_gfx.h"
-    #include "sokol/sokol_time.h"
+    #include "sokol_app.h"
+    #include "sokol_gfx.h"
+    #include "sokol_time.h"
     // #include "sokol_audio.h"
-    #include "sokol/sokol_fetch.h"
-    #include "sokol/sokol_log.h"
-    #include "sokol/sokol_glue.h"
+    #include "sokol_fetch.h"
+    #include "sokol_log.h"
+    #include "sokol_glue.h"
     #if defined(_MSC_VER )
         // #pragma warning(disable:4996)   // strncpy use in fontstash.h
     #endif

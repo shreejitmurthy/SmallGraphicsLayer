@@ -8,6 +8,7 @@ namespace sgl = SmallGraphicsLayer;
 sgl::Device device;
 
 void init(void) {
+    // Unlike the examples using SDL3, you won't need to provide the width and height of the screen
     device.Init();
 }
 

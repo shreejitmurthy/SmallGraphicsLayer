@@ -3,9 +3,8 @@
 #include "SGL/Log.hpp"
 
 #if defined(WINDOW_SAPP) && defined(__APPLE__) && defined(__MACH__)
-    #include <sokol/sokol_app.h>
-    #include <sokol/sokol_glue.h>
-    #include <sokol/sokol_log.h>
+    #include <sokol_app.h>
+    #include <sokol_glue.h>
 #endif
 
 #include <array>
@@ -28,7 +27,6 @@ void SmallGraphicsLayer::Device::Init(int w, int h) {
         Logger::Log()->info("Window Backend: sokol_app");
         swapchain = sglue_swapchain();
         desc.environment = sglue_environment();
-        desc.logger.func = slog_func;
     #elif defined(WINDOW_SDL)
         Logger::Log()->info("Window Backend: SDL");
         swapchain = {};
