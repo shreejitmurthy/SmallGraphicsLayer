@@ -41,11 +41,11 @@ public:
     void Refresh();
     void Shutdown();
 
-    float Width()  { return width;  }
-    float Height() { return height; }
+    static float Width()  { return width;  }
+    static float Height() { return height; }
     Math::Vec2 FrameSize() { return {static_cast<float>(width), static_cast<float>(height)}; };
 private:
-    std::uint32_t width, height;
+    static std::uint32_t width, height;
     sg_pass_action pass_action;
     sg_swapchain swapchain;
 };
@@ -211,7 +211,7 @@ public:
         dirty = true;
     }
 
-    InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tile_size);
+    InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize);
 private:
     unsigned int w, h, channels;
     instance_params_t vs_params;
