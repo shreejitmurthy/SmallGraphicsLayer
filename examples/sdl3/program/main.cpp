@@ -35,12 +35,12 @@ int main() {
     auto program = sgl::AttributeProgram(frag);
 
     sgl::AttributeBuilder ab(device.FrameSize(), program);
+    // Create a fullscreen quad
     ab.Begin(sgl::Primitives::Quad);
     ab.Vertex({screenWidth, 0});
     ab.Vertex({screenWidth, screenHeight});
     ab.Vertex({0, screenHeight});
     ab.Vertex({0, 0});
-    // triangle 1 and 2
     ab.Index({0, 1, 2}).Index({0, 2, 3});
     ab.End();
 
@@ -65,6 +65,7 @@ int main() {
         }
 
         device.Clear();
+        // Apply uniforms for iResolution and iTime (see shader file)
         program.ApplyDefaultUniforms({screenWidth, screenHeight}, static_cast<float>(SDL_GetTicks()) / 1000);
         ab.Draw(program);
         device.Refresh();
