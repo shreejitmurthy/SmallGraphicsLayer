@@ -9,9 +9,47 @@
 
 #include <array>
 
+// TODO: Apply this everywhere where needed
+// Currently only used in Instanced Renderer
+inline sg_buffer make_ibuf() {
+    const std::uint16_t indices[] = { 0, 1, 2,  2, 3, 0 };
+    sg_buffer_desc ibuf_desc = {};
+    ibuf_desc.data = SG_RANGE(indices);
+    ibuf_desc.usage.index_buffer = true;
+    ibuf_desc.label = "indices";
+    return sg_make_buffer(&ibuf_desc);;
+}
+
+inline sg_buffer make_unit_vbuf() {
+    const float vertices[] = {
+        0.0f, 0.0f,   0.0f, 0.0f,
+        1.0f, 0.0f,   1.0f, 0.0f,
+        1.0f, 1.0f,   1.0f, 1.0f,
+        0.0f, 1.0f,   0.0f, 1.0f
+    };
+
+    sg_buffer_desc vbuf_desc = {};
+    vbuf_desc.data = SG_RANGE(vertices);
+    vbuf_desc.usage.vertex_buffer = true;
+    // change if needed
+    vbuf_desc.usage.immutable = true;
+    vbuf_desc.label = "vertices";
+    return sg_make_buffer(&vbuf_desc);;
+}
+
+inline void set_alpha_blend(sg_pipeline_desc& pip_desc) {
+    pip_desc.colors[0].blend.enabled          = true;
+    pip_desc.colors[0].blend.src_factor_rgb   = SG_BLENDFACTOR_SRC_ALPHA;
+    pip_desc.colors[0].blend.dst_factor_rgb   = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.colors[0].blend.op_rgb           = SG_BLENDOP_ADD;
+    pip_desc.colors[0].blend.src_factor_alpha = SG_BLENDFACTOR_ONE;
+    pip_desc.colors[0].blend.dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    pip_desc.colors[0].blend.op_alpha         = SG_BLENDOP_ADD;
+}
+
 using namespace SmallGraphicsLayer;
 
-void EnableLogger() {
+void SmallGraphicsLayer::EnableLogger() {
     Logger::Init(true);
 }
 
@@ -92,10 +130,6 @@ void Device::Refresh() {
 
 void Device::Shutdown() {
     sg_shutdown();
-}
-
-inline Math::Mat4 GetDefaultProjection() {
-    return Math::Mat4::ortho(0.0f, Device::Width(), Device::Height(), 0.0f, -1.0f, 1.0f);
 }
 
 AttributeProgram::AttributeProgram(const std::string& frag) {
@@ -233,10 +267,10 @@ Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     img_desc.width = w;
     img_desc.height = h;
     img_desc.sample_count = 1;
-    img_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
     img_desc.data.mip_levels[0].ptr = pixels;
     img_desc.data.mip_levels[0].size = static_cast<std::size_t>(w * h * 4);
     image = sg_make_image(img_desc);
+    free(pixels);
 
     sg_sampler_desc smp_desc = {};
     smp_desc.min_filter = SG_FILTER_LINEAR;
@@ -289,18 +323,21 @@ Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     bindings.samplers[SMP_sprite_smp] = smp;
 }
 
-void Sprite::Draw(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
+void Sprite::Update(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
     params.mvp = GetDefaultProjection();
 
     params.mvp *= Math::Mat4::translate({ position.x - origin.x, position.y - origin.y, 0.0f });
     params.mvp *= Math::Mat4::scale({ size.x * scale.x, size.y * scale.y, 1.0f });
+}
 
+void Sprite::Draw() {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
     sg_apply_uniforms(UB_sprite_params, SG_RANGE(params));
     sg_draw(0, 6, 1);
 }
 
+// FIXME: Destroying empty buffers, not super important.
 void Sprite::Destroy() {
     sg_destroy_buffer(vbuf);
     sg_destroy_buffer(ibuf);
@@ -310,5 +347,89 @@ void Sprite::Destroy() {
 
 InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize) {
     tile_size = tileSize;
+    vs_params.mvp = GetDefaultProjection();
+
+    sg_shader shader = sg_make_shader(instance_main_shader_desc(sg_query_backend()));
+    int w = std::get<0>(data), h = std::get<1>(data);
+    unsigned char* pixels = std::get<2>(data);
+    sg_image_desc image_desc = {};
+    image_desc.width = w;
+    image_desc.height = h;
+    image_desc.data.mip_levels[0].ptr = pixels;
+    image_desc.data.mip_levels[0].size = static_cast<std::size_t>(w * h * 4);
+    sg_image image = sg_make_image(image_desc);
+    free(pixels);
+
+    this->w = w;
+    this->h = h;
+    this->channels = channels;
+
+    sg_sampler_desc smp_desc = {};
+    smp_desc.min_filter = SG_FILTER_LINEAR;
+    smp_desc.mag_filter = SG_FILTER_NEAREST;
+    sg_sampler smp = sg_make_sampler(smp_desc);
+
+    bindings.vertex_buffers[0] = make_unit_vbuf();
+    bindings.index_buffer = make_ibuf();
+
+    sg_view_desc view_desc = {};
+    view_desc.texture.image = image;
+
+    bindings.views[VIEW_instance_tex] = sg_make_view(&view_desc);
+    bindings.samplers[SMP_instance_smp] = smp;
+
+    sg_buffer_desc inst_desc = {};
+    inst_desc.size = sizeof(InstanceData) * MAX_INSTANCES;
+    inst_desc.usage.stream_update = true;
+    inst_desc.usage.vertex_buffer = true;
+    inst_desc.label = "instance-buffer";
+    bindings.vertex_buffers[1] = sg_make_buffer(inst_desc);
+
+    sg_pipeline_desc pip_desc = {};
+    pip_desc.shader = shader;
+    pip_desc.index_type = SG_INDEXTYPE_UINT16;
+
+    pip_desc.layout.buffers[0].stride    = 4 * sizeof(float);
+    pip_desc.layout.buffers[1].step_func = SG_VERTEXSTEP_PER_INSTANCE;
+
+    pip_desc.layout.attrs[ATTR_instance_main_aPos].format       = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_instance_main_aPos].buffer_index = 0;
+    pip_desc.layout.attrs[ATTR_instance_main_aUV].format        = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_instance_main_aUV].buffer_index  = 0;
+
+    pip_desc.layout.attrs[ATTR_instance_main_aOffset].format           = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_instance_main_aOffset].buffer_index     = 1;
+    pip_desc.layout.attrs[ATTR_instance_main_aUVOffset].format         = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_instance_main_aUVOffset].buffer_index   = 1;
+    pip_desc.layout.attrs[ATTR_instance_main_aWorldScale].format       = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_instance_main_aWorldScale].buffer_index = 1;
+    pip_desc.layout.attrs[ATTR_instance_main_aUVScale].format          = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_instance_main_aUVScale].buffer_index    = 1;
+
+    set_alpha_blend(pip_desc);
+    pip_desc.label = "pipeline";
+    pipeline = sg_make_pipeline(pip_desc);
+}
+
+void InstancedSpriteRenderer::Update(Math::Mat4 projection, Math::Mat4 view) {
+    if (instances.empty()) return;
+    sg_range range;
+    range.ptr = instances.data();
+    range.size = instances.size() * sizeof(InstanceData);
+    sg_update_buffer(bindings.vertex_buffers[1], &range);
+    dirty = false;
     
+    vs_params.mvp = projection * view;
+}
+
+void InstancedSpriteRenderer::Draw() {
+    if (instances.empty()) return;
+    sg_apply_pipeline(pipeline);
+    sg_apply_bindings(&bindings);
+    sg_apply_uniforms(UB_instance_params, SG_RANGE(vs_params));
+    sg_draw(0, 6, (int)instances.size());
+}
+
+void InstancedSpriteRenderer::Destroy() {
+    sg_destroy_pipeline(pipeline);
 }

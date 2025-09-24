@@ -14,7 +14,13 @@
 #include <functional>
 #include <unordered_map>
 
+#define MAX_INSTANCES 5000;
+
 namespace SmallGraphicsLayer {
+
+inline Math::Mat4 GetDefaultProjection() {
+    return Math::Mat4::ortho(0.0f, Device::Width(), Device::Height(), 0.0f, -1.0f, 1.0f);
+}
 
 void EnableLogger();
 
@@ -116,6 +122,7 @@ public:
         enable_ndc = useNDC;
         use_custom_fragment = true;
     }
+
     AttributeBuilder& Begin(Primitives primative);
     AttributeBuilder& Vertex(Position pos, Colour col = Colours::Black, bool useNDC = false);
     AttributeBuilder& Index(Index index);
@@ -153,10 +160,13 @@ private:
 // Single sprite renderer, uses one draw call per sprite
 class Sprite : public Renderer {
 public:
-    // TODO?
-    Sprite(const std::string& path);
     Sprite(std::tuple<int, int, unsigned char*> data);
-    void Draw(Math::Vec2 position, Math::Vec2 origin = {0, 0}, Math::Vec2 scale = {1, 1});
+    void Update(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale);
+    void Draw();
+    void Render(Math::Vec2 position, Math::Vec2 origin = {0, 0}, Math::Vec2 scale = {1, 1}) {
+        Update(position, origin, scale);
+        Draw();
+    }
     void Destroy() override;
 
     RendererType Type() const override { return RendererType::Single; }
@@ -170,6 +180,7 @@ private:
     sprite_params_t params;
     Math::Vec2 size;
 };
+
 
 struct InstanceData {
     Math::Vec2 offset;      // world-space X/Y
@@ -212,12 +223,18 @@ public:
     }
 
     InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize);
+    void Update(Math::Mat4 projection, Math::Mat4 view);
+    void Draw();
+    void Render(Math::Mat4 projection = GetDefaultProjection(), Math::Mat4 view = Math::Mat4(1.f)) {
+        Update(projection, view);
+        Draw();
+    }
+    void Destroy() override;
 private:
     unsigned int w, h, channels;
     instance_params_t vs_params;
     Math::Vec2 tile_size;
     std::vector<InstanceData> instances;
     bool dirty = false;
-    bool initialised = false;
 };
 }
