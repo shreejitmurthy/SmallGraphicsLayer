@@ -179,13 +179,6 @@ private:
     Math::Vec2 size;
 };
 
-struct InstanceData {
-    Math::Vec2 offset;      // world-space X/Y
-    Math::Vec2 uvOffset;    // which frame in the atlas
-    Math::Vec2 worldScale;  // size of sprite in world eg. 64x32
-    Math::Vec2 uvScale;     // size of sprite in uv space
-};
-
 inline Math::Vec2 get_tile_uv(Math::Vec2 tileIndex, Math::Vec2 tileSize, Math::Vec2 atlasSize) {
     return Math::Vec2(tileIndex.x * tileSize.x / float(atlasSize.x), tileIndex.y * tileSize.y / float(atlasSize.y));
 }
@@ -193,7 +186,32 @@ inline Math::Vec2 get_tile_uv(Math::Vec2 tileIndex, Math::Vec2 tileSize, Math::V
 // Instanced sprite renderer, uses one draw call for many sprites
 class InstancedSpriteRenderer : public Renderer {
 public:
-    InstanceData CreateInstanceData(Math::Vec2 offset, Math::Vec2 tileIndex, Math::Vec2 tileSize = {0, 0}) {
+    void Reserve(std::size_t cap) { instances.reserve(cap); }
+    void PushData(Math::Vec2 offset, Math::Vec2 tile_index, Math::Vec2 tile_size = {0, 0}) {
+        instances.push_back(create_instance_data(offset, tile_index, tile_size));
+    }
+
+    InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances = 4096);
+    void Update(Math::Mat4 projection, Math::Mat4 view);
+    void Draw();
+    void Render(Math::Mat4 projection = GetDefaultProjection(), Math::Mat4 view = Math::Mat4(1.f)) {
+        Update(projection, view);
+        Draw();
+    }
+
+    RendererType Type() const override { return RendererType::Instanced; }
+
+    void Destroy() override;
+private:
+
+    struct InstanceData {
+        Math::Vec2 offset;      // world-space X/Y
+        Math::Vec2 uvOffset;    // which frame in the atlas
+        Math::Vec2 worldScale;  // size of sprite in world eg. 64x32
+        Math::Vec2 uvScale;     // size of sprite in uv space
+    };
+
+    InstanceData create_instance_data(Math::Vec2 offset, Math::Vec2 tileIndex, Math::Vec2 tileSize = {0, 0}) {
         if (tileSize == Math::Vec2(0, 0)) {
             tileSize = tile_size;
         }
@@ -209,37 +227,23 @@ public:
         return ret;
     }
 
-    void set_instance_data(const std::vector<InstanceData>& data) {
-        instances = data;
-        dirty = true;
-    }
-
-    void Reserve(std::size_t cap) { instances.reserve(cap); }
-    void PushData(Math::Vec2 offset, Math::Vec2 tile_index, Math::Vec2 tile_size = {0, 0}) {
-        instances.push_back(CreateInstanceData(offset, tile_index, tile_size));
-    }
-
+    // TODO: Consider removing
     void set_instance_data(std::vector<InstanceData>&& data) {
         instances = std::move(data);
         dirty = true;
     }
 
-    InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances = 4096);
-    void Update(Math::Mat4 projection, Math::Mat4 view);
-    void Draw();
-    void Render(Math::Mat4 projection = GetDefaultProjection(), Math::Mat4 view = Math::Mat4(1.f)) {
-        Update(projection, view);
-        Draw();
+    void set_instance_data(const std::vector<InstanceData>& data) {
+        instances = data;
+        dirty = true;
     }
 
-    RendererType Type() const override { return RendererType::Instanced; }
-
-    void Destroy() override;
-private:
     unsigned int w, h;
     instance_params_t vs_params;
     Math::Vec2 tile_size;
     std::vector<InstanceData> instances{};
     bool dirty = false;
 };
+
+// TODO: CPU Batching
 }
