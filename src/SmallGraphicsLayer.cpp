@@ -51,6 +51,7 @@ using namespace SmallGraphicsLayer;
 
 void SmallGraphicsLayer::EnableLogger() {
     Logger::Init(true);
+    Logger::Log()->info("Enabled non-error/critical logging");
 }
 
 std::uint32_t Device::width  = 0;
@@ -270,7 +271,6 @@ Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
     img_desc.data.mip_levels[0].ptr = pixels;
     img_desc.data.mip_levels[0].size = static_cast<std::size_t>(w * h * 4);
     image = sg_make_image(img_desc);
-    free(pixels);
 
     sg_sampler_desc smp_desc = {};
     smp_desc.min_filter = SG_FILTER_LINEAR;
@@ -345,7 +345,7 @@ void Sprite::Destroy() {
     sg_destroy_pipeline(pipeline);
 }
 
-InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize) {
+InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances) {
     tile_size = tileSize;
     vs_params.mvp = GetDefaultProjection();
 
@@ -358,7 +358,6 @@ InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned c
     image_desc.data.mip_levels[0].ptr = pixels;
     image_desc.data.mip_levels[0].size = static_cast<std::size_t>(w * h * 4);
     sg_image image = sg_make_image(image_desc);
-    free(pixels);
 
     this->w = w;
     this->h = h;
@@ -378,7 +377,7 @@ InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned c
     bindings.samplers[SMP_instance_smp] = smp;
 
     sg_buffer_desc inst_desc = {};
-    inst_desc.size = sizeof(InstanceData) * MAX_INSTANCES;
+    inst_desc.size = sizeof(InstanceData) * maxInstances;
     inst_desc.usage.stream_update = true;
     inst_desc.usage.vertex_buffer = true;
     inst_desc.label = "instance-buffer";
@@ -426,9 +425,10 @@ void InstancedSpriteRenderer::Draw() {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
     sg_apply_uniforms(UB_instance_params, SG_RANGE(vs_params));
-    sg_draw(0, 6, (int)instances.size());
+    sg_draw(0, 6, static_cast<int>(instances.size()));
 }
 
 void InstancedSpriteRenderer::Destroy() {
+    instances.clear();
     sg_destroy_pipeline(pipeline);
 }
