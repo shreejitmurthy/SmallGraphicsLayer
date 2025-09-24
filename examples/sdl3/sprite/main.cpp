@@ -57,10 +57,15 @@ int main() {
 
         device.Clear();  // default clear colour
 
-        // Draw the sprite in the centre of the screen
+        // Render the sprite in the centre of the screen
         // Sprites draw from the top-left of the image, but this
-        // can be altered by the second `origin` parameter.
-        sprite.Draw({400, 300}, {sprite.Width() / 2, sprite.Height() / 2});
+        // can be altered by the second origin parameter.
+        sprite.Render({400, 300}, {sprite.Width() / 2, sprite.Height() / 2});
+
+        // Note: Render() combines two functions of Sprite: Update() and Draw()
+        // Update() takes the position, origin and scale. It does not use default parameters.
+        // Draw() takes no parameters.
+        // Render() has default parameters for origin and scale.
 
         device.Refresh();
 
