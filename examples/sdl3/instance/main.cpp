@@ -50,7 +50,6 @@ int main() {
     auto texture = sgl::AssetManager::GetTexture(path);
     // Provide the atlas/tileset and the tile size.
     sgl::InstancedSpriteRenderer isr(texture->GetData(), {tileWidth, tileHeight});
-    isr.Reserve(mapWidth * mapHeight);
     for (int y = 0; y < mapHeight; y++) {
         for (int x = 0; x < mapWidth; x++) {
             isr.PushData(get_tile_offset({x, y}, {tileWidth, tileHeight}), {0, 0});
