@@ -19,10 +19,10 @@ typedef std::tuple<int, int, unsigned char*> TextureData;
 
 typedef struct Texture { 
     int width, height;
-    unsigned char* data;
+    unsigned char* pixels;
 
     TextureData GetData() {
-        return {width, height, data};
+        return {width, height, pixels};
     }
 
     void Free();

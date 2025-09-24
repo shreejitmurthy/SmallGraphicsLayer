@@ -10,7 +10,7 @@ std::unordered_map<std::string, std::future<SmallGraphicsLayer::Texture>> SmallG
 std::unordered_map<std::string, std::shared_ptr<SmallGraphicsLayer::Texture>> SmallGraphicsLayer::AssetManager::s_loadedTextures{};
 
 void SmallGraphicsLayer::Texture::Free() {
-    stbi_image_free(data);
+    stbi_image_free(pixels);
 }
 
 SmallGraphicsLayer::File LoadFile(const std::string& filepath) {
@@ -27,7 +27,7 @@ SmallGraphicsLayer::Texture LoadTexture(const std::string& filepath) {
         // std::cout << "Loaded sprite at: " <<SmallGraphicsLayer::Utils::FindPathUpwards(filepath).c_str() << std::endl;
         SmallGraphicsLayer::Logger::Log()->info("Loaded texture at: {}", filepath);
     }
-    out.data = pixels;
+    out.pixels = pixels;
     out.width = w;
     out.height = h;
     return out;
@@ -38,9 +38,9 @@ SmallGraphicsLayer::Texture LoadTexture(const std::string& filepath) {
 struct TextureDeleter {
     void operator()(SmallGraphicsLayer::Texture* t) const noexcept {
         if (!t) return;
-        if (t->data) {
-            stbi_image_free(t->data);
-            t->data = nullptr; // prevent accidental double free if someone *does* call Free()
+        if (t->pixels) {
+            stbi_image_free(t->pixels);
+            t->pixels = nullptr; // prevent accidental double free if someone *does* call Free()
         }
         delete t;
     }
