@@ -5,9 +5,17 @@
 #include "SGL/AssetManager.hpp"
 
 namespace sgl = SmallGraphicsLayer;
+using namespace sgl::Math;
 
 constexpr int screenWidth = 800;
 constexpr int screenHeight = 600;
+
+// Formula for isometric tiles.
+Vec2 get_tile_offset(iVec2 pos, iVec2 tile_size, Vec2 global_offset = { screenWidth / 2, 0 }) {
+    float x_pos = global_offset.x - tile_size.x / 2 + (pos.x - pos.y) * ((tile_size.x) / 2);
+    float y_pos = global_offset.y + (pos.x + pos.y) * ((tile_size.y) / 2);
+    return {x_pos, y_pos};
+}
 
 int main() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -25,8 +33,29 @@ int main() {
 
     SDL_GL_SetSwapInterval(1);
 
+    sgl::EnableLogger();
+    
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
+
+    std::string path = "examples/sdl3/instance/resources/tiles.png";
+
+    const int mapWidth = 10;
+    const int mapHeight = 10;
+
+    const int tileWidth = 64;
+    const int tileHeight = 32;
+
+    sgl::AssetManager::Request(path, sgl::AssetType::Texture);
+    auto texture = sgl::AssetManager::GetTexture(path);
+    // Provide the atlas/tileset and the tile size.
+    sgl::InstancedSpriteRenderer isr(texture->GetData(), {tileWidth, tileHeight});
+    isr.Reserve(mapWidth * mapHeight);
+    for (int y = 0; y < mapHeight; y++) {
+        for (int x = 0; x < mapWidth; x++) {
+            isr.PushData(get_tile_offset({x, y}, {tileWidth, tileHeight}), {0, 0});
+        }
+    }
 
     SDL_Event event;
 
@@ -50,12 +79,14 @@ int main() {
 
         device.Clear();  // default clear colour
 
+        isr.Render();
 
         device.Refresh();
 
         SDL_GL_SwapWindow(window);
     }
 
+    isr.Destroy();
     device.Shutdown();
 
     SDL_DestroyWindow(window);
