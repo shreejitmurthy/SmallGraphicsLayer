@@ -362,7 +362,6 @@ InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned c
 
     this->w = w;
     this->h = h;
-    this->channels = channels;
 
     sg_sampler_desc smp_desc = {};
     smp_desc.min_filter = SG_FILTER_LINEAR;

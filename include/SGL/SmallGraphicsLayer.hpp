@@ -18,10 +18,6 @@
 
 namespace SmallGraphicsLayer {
 
-inline Math::Mat4 GetDefaultProjection() {
-    return Math::Mat4::ortho(0.0f, Device::Width(), Device::Height(), 0.0f, -1.0f, 1.0f);
-}
-
 void EnableLogger();
 
 typedef sg_color Colour;
@@ -55,6 +51,10 @@ private:
     sg_pass_action pass_action;
     sg_swapchain swapchain;
 };
+
+inline Math::Mat4 GetDefaultProjection() {
+    return Math::Mat4::ortho(0.0f, Device::Width(), Device::Height(), 0.0f, -1.0f, 1.0f);
+}
 
 enum class RendererType {
     Attribute,  // basic attributes
@@ -231,7 +231,7 @@ public:
     }
     void Destroy() override;
 private:
-    unsigned int w, h, channels;
+    unsigned int w, h;
     instance_params_t vs_params;
     Math::Vec2 tile_size;
     std::vector<InstanceData> instances;
