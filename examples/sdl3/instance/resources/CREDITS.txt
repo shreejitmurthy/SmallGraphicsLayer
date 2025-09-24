@@ -1,1 +1,2 @@
-https://opengameart.org/content/grassland-tileset
+"tiles.png" modified from: https://opengameart.org/content/grassland-tileset
+"spritesheet.png" from 'scrabling' on itch.io: https://scrabling.itch.io/pixel-isometric-tiles
