@@ -5,8 +5,7 @@
 #include "Math.hpp"
 
 #include "genshaders/attributes.glsl.h"
-#include "genshaders/ssprite.glsl.h"
-#include "genshaders/instance.glsl.h"
+#include "genshaders/sprite.glsl.h"
 
 #include <cstdint>
 #include <vector>
@@ -235,6 +234,22 @@ private:
 
 // CPU sprite batching
 class BatchedSprite : public Renderer {
+public:
+    BatchedSprite();
 
+    void Begin();
+    void Draw();
+    void End();
+
+    void Destroy() override;
+private:
+    struct Vertex {
+        float px, py;
+        float u, v;
+        std::uint32_t rgba;
+    };
+
+    std::vector<Vertex> vertices;
+    std::vector<std::uint16_t> indices;
 };
 }

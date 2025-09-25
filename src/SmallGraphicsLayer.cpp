@@ -434,3 +434,5 @@ void InstancedSprite::Destroy() {
     instances.clear();
     sg_destroy_pipeline(pipeline);
 }
+
+
