@@ -347,7 +347,7 @@ void Sprite::Destroy() {
     sg_destroy_pipeline(pipeline);
 }
 
-InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances) {
+InstancedSprite::InstancedSprite(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances) {
     tile_size = tileSize;
     vs_params.mvp = GetDefaultProjection();
 
@@ -411,7 +411,7 @@ InstancedSpriteRenderer::InstancedSpriteRenderer(std::tuple<int, int, unsigned c
     pipeline = sg_make_pipeline(pip_desc);
 }
 
-void InstancedSpriteRenderer::Update(Math::Mat4 projection, Math::Mat4 view) {
+void InstancedSprite::Update(Math::Mat4 projection, Math::Mat4 view) {
     if (instances.empty()) return;
     sg_range range;
     range.ptr = instances.data();
@@ -422,7 +422,7 @@ void InstancedSpriteRenderer::Update(Math::Mat4 projection, Math::Mat4 view) {
     vs_params.mvp = projection * view;
 }
 
-void InstancedSpriteRenderer::Draw() {
+void InstancedSprite::Draw() {
     if (instances.empty()) return;
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
@@ -430,7 +430,7 @@ void InstancedSpriteRenderer::Draw() {
     sg_draw(0, 6, static_cast<int>(instances.size()));
 }
 
-void InstancedSpriteRenderer::Destroy() {
+void InstancedSprite::Destroy() {
     instances.clear();
     sg_destroy_pipeline(pipeline);
 }

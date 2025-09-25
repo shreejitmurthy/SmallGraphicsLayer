@@ -184,14 +184,14 @@ inline Math::Vec2 get_tile_uv(Math::Vec2 tileIndex, Math::Vec2 tileSize, Math::V
 }
 
 // GPU sprite instancing
-class InstancedSpriteRenderer : public Renderer {
+class InstancedSprite : public Renderer {
 public:
     void Reserve(std::size_t cap) { instances.reserve(cap); }
     void PushData(Math::Vec2 offset, Math::Vec2 tile_index, Math::Vec2 tile_size = {0, 0}) {
         instances.push_back(create_instance_data(offset, tile_index, tile_size));
     }
 
-    InstancedSpriteRenderer(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances = 4096);
+    InstancedSprite(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances = 4096);
     void Update(Math::Mat4 projection, Math::Mat4 view);
     void Draw();
     void Render(Math::Mat4 projection = GetDefaultProjection(), Math::Mat4 view = Math::Mat4(1.f)) {
@@ -234,7 +234,7 @@ private:
 };
 
 // CPU sprite batching
-class BatchedSpriteRenderer : public Renderer {
+class BatchedSprite : public Renderer {
 
 };
 }
