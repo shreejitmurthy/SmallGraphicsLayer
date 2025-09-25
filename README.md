@@ -60,7 +60,7 @@ add_executable(MyProject main.cpp)
 
 target_link_libraries(MyProject SmallGraphicsLayer)
 ```
-If you don't use an IDE, remeber this command after doing `cmake -GNinja ..`
+If you don't use an IDE to help build (ie CLion), remember this command after doing `cmake -GNinja ..`:
 ```
 cmake -S .. -B . -DSGL_BUILD_EXAMPLES=ON -DSGL_BACKEND_SAPP=OFF -DSGL_BACKEND_SDL3=ON
 ```
