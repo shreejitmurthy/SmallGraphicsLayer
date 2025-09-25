@@ -325,7 +325,6 @@ Sprite::Sprite(std::tuple<int, int, unsigned char*> data) {
 
 void Sprite::Update(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
     params.mvp = GetDefaultProjection();
-
     params.mvp *= Math::Mat4::translate({ position.x - origin.x, position.y - origin.y, 0.0f });
     params.mvp *= Math::Mat4::scale({ size.x * scale.x, size.y * scale.y, 1.0f });
 }
@@ -337,10 +336,13 @@ void Sprite::Draw() {
     sg_draw(0, 6, 1);
 }
 
-// FIXME: Destroying empty buffers, not super important.
 void Sprite::Destroy() {
     sg_destroy_buffer(vbuf);
     sg_destroy_buffer(ibuf);
+    sg_destroy_buffer(bindings.vertex_buffers[0]);
+    sg_destroy_buffer(bindings.index_buffer);
+    sg_destroy_view(bindings.views[VIEW_sprite_tex]);
+    sg_destroy_sampler(bindings.samplers[SMP_sprite_smp]);
     sg_destroy_image(image);
     sg_destroy_pipeline(pipeline);
 }
