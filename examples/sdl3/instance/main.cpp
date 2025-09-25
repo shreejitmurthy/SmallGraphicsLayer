@@ -10,10 +10,10 @@ using namespace sgl::Math;
 constexpr int screenWidth = 800;
 constexpr int screenHeight = 600;
 
-// Formula for isometric tiles.
+// Formula for the isometric tiles on this spritesheet.
 Vec2 get_tile_offset(iVec2 pos, iVec2 tile_size, Vec2 global_offset = { screenWidth / 2, 0 }) {
-    float x_pos = global_offset.x - tile_size.x / 2 + (pos.x - pos.y) * ((tile_size.x) / 2);
-    float y_pos = global_offset.y + (pos.x + pos.y) * ((tile_size.y) / 2);
+    float x_pos = global_offset.x - tile_size.x / 2 + (pos.x - pos.y) * ((tile_size.x - 4) / 2);
+    float y_pos = global_offset.y + (pos.x + pos.y) * ((tile_size.y - 17) / 2);
     return {x_pos, y_pos};
 }
 
@@ -38,28 +38,26 @@ int main() {
     sgl::Device device;
     device.Init(screenWidth, screenHeight);
 
-    std::string path = "examples/sdl3/instance/resources/tiles.png";
+    std::string path = "examples/sdl3/instance/resources/spritesheet.png";
 
     const int mapWidth = 10;
     const int mapHeight = 10;
 
-    const int tileWidth = 64;
+    const int tileWidth = 32;
     const int tileHeight = 32;
 
     sgl::AssetManager::Request(path, sgl::AssetType::Texture);
     auto texture = sgl::AssetManager::GetTexture(path);
-    int max_cols = 16;
-    int col = 0;
     // Provide the atlas/tileset and the tile size.
     sgl::InstancedSpriteRenderer isr(texture->GetData(), {tileWidth, tileHeight});
     // Generate the instances to be drawn. 
-    // Instanced rendering is great for large maps or repeating quantities of something
+    // Instanced rendering is great for large maps or repeating quantities of something that share an image.
     // Always prefer GPU instancing for drawing many entities as it cuts down numerous draw calls to one
     // Later, SGL may be able to do CPU side sprite batching.
     for (int y = 0; y < mapHeight; y++) {
         for (int x = 0; x < mapWidth; x++) {
-            isr.PushData(get_tile_offset({x, y}, {tileWidth, tileHeight}), {(float)(col % max_cols), 0});
-            col++;
+            // Tile indexing is zero-based
+            isr.PushData(get_tile_offset({x, y}, {tileWidth, tileHeight}), {7, 3});
         }
     }
 
