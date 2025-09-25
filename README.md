@@ -37,7 +37,7 @@ Currently, SGL can do the following:
 - Clear screen/buffer
 - Primitive drawing (w/ custom fragment shaders as well)
 - Asynchronous assset loading and fetching (it kinda sucks right now, but it works)
-- Sprite drawing
+- Sprite drawing (instancing and batching (*todo*))
 
 
 >[!IMPORTANT]
