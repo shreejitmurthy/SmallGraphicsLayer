@@ -183,7 +183,7 @@ inline Math::Vec2 get_tile_uv(Math::Vec2 tileIndex, Math::Vec2 tileSize, Math::V
     return Math::Vec2(tileIndex.x * tileSize.x / float(atlasSize.x), tileIndex.y * tileSize.y / float(atlasSize.y));
 }
 
-// Instanced sprite renderer, uses one draw call for many sprites
+// GPU sprite instancing
 class InstancedSpriteRenderer : public Renderer {
 public:
     void Reserve(std::size_t cap) { instances.reserve(cap); }
@@ -203,7 +203,6 @@ public:
 
     void Destroy() override;
 private:
-
     struct InstanceData {
         Math::Vec2 offset;      // world-space X/Y
         Math::Vec2 uvOffset;    // which frame in the atlas
@@ -226,18 +225,7 @@ private:
         );
         return ret;
     }
-
-    // TODO: Consider removing
-    void set_instance_data(std::vector<InstanceData>&& data) {
-        instances = std::move(data);
-        dirty = true;
-    }
-
-    void set_instance_data(const std::vector<InstanceData>& data) {
-        instances = data;
-        dirty = true;
-    }
-
+    
     unsigned int w, h;
     instance_params_t vs_params;
     Math::Vec2 tile_size;
@@ -245,5 +233,8 @@ private:
     bool dirty = false;
 };
 
-// TODO: CPU Batching
+// CPU sprite batching
+class BatchedSpriteRenderer : public Renderer {
+
+};
 }
