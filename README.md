@@ -14,6 +14,9 @@ cmake -S .. -B . -DSGL_BUILD_EXAMPLES=ON -DSGL_BACKEND_SAPP=OFF -DSGL_BACKEND_SD
 cmake --build .
 ./examples/sdl3/clear_sdl3/clear_sdl3
 ```
+
+## Note for Math
+
 > [!NOTE]
 > The `SmallGraphicsLayer::Math` namespace provides lightweight vector and matrix types (`Vec2`, `iVec2`, `Vec3`, `Vec4`, and `Mat4`) along with common operations. These are the same math utilities used internally by SGL, so they integrate seamlessly with the rest of the framework. However, if you can find a way to use your favourite other math library in conjunction with SGL, then feel free :). Below is a minimal example of using the Math functions from SGL:
 
