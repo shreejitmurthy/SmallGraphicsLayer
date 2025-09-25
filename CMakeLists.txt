@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory("vendor/spdlog")
 
-option(SGL_BUILD_EXAMPLES "Build example apps" ON)
+option(SGL_BUILD_EXAMPLES "Build example apps" OFF)
 option(SGL_BACKEND_SAPP "Build using sokol_app" OFF)
 option(SGL_BACKEND_SDL3 "Build using SDL3" ON)
 
