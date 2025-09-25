@@ -8,7 +8,7 @@ This is an important question. Why did I make it? Well I wanted a library that a
 
 ## Examples
 Examples are located in the `examples/` directory. They build with sokol and SDL3 using CMake. I recommend building with `ninja` for the fastest build times, but it's up to you. Remove the `-GNinja` if you don't want to use it:
-```cmake
+```
 cmake -GNinja ..
 cmake -S .. -B . -DSGL_BUILD_EXAMPLES=ON -DSGL_BACKEND_SAPP=OFF -DSGL_BACKEND_SDL3=ON
 cmake --build .
@@ -45,3 +45,28 @@ Currently, SGL can do the following:
 
 >[!IMPORTANT]
 > The Utils provided by SGL can load a file into a string and attempt to resolve the full path of a relative path. Resource loading itself is managed by the Asset Manager, though you’re not required to use it. Instead, check what form of data each resource-using class expects, and pass that data in directly using any other method you wish.
+
+## Building
+You can build with CMake:
+```cmake
+cmake_minimum_required(VERSION 4.0)
+project(MyProject)
+
+set(CMAKE_CXX_STANDARD 20)
+
+add_subdirectory(vendor/SmallGraphicsLayer)
+
+add_executable(MyProject main.cpp)
+
+target_link_libraries(MyProject SmallGraphicsLayer)
+```
+If you don't use an IDE, remeber this command after doing `cmake -GNinja ..`
+```
+cmake -S .. -B . -DSGL_BUILD_EXAMPLES=ON -DSGL_BACKEND_SAPP=OFF -DSGL_BACKEND_SDL3=ON
+```
+If you use git submodules, you may wish to only initialise the library's dependencies, and not the examples:
+```
+git submodule add https://github.com/shreejitmurthy SmallGraphicsLayer.git mythirdparty/SmallGraphicsLayer
+git submodule update --init vendor/SmallGraphicsLayer
+git -C mythirdparty/SmallGraphicsLayer submodule update --init vendor/spdlog
+```
