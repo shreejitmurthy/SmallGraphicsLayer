@@ -49,7 +49,7 @@ int main() {
     sgl::AssetManager::Request(path, sgl::AssetType::Texture);
     auto texture = sgl::AssetManager::GetTexture(path);
     // Provide the atlas/tileset and the tile size.
-    sgl::InstancedSpriteRenderer isr(texture->GetData(), {tileWidth, tileHeight});
+    sgl::InstancedSprite isr(texture->GetData(), {tileWidth, tileHeight});
     // Generate the instances to be drawn. 
     // Instanced rendering is great for large maps or repeating quantities of something that share an image.
     // Always prefer GPU instancing for drawing many entities as it cuts down numerous draw calls to one
