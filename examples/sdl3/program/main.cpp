@@ -34,7 +34,7 @@ int main() {
     std::string frag = sgl::Utils::LoadFileIntoString("examples/sdl3/program/flame.frag");
     auto program = sgl::AttributeProgram(frag);
 
-    sgl::AttributeBuilder ab(device.FrameSize(), program);
+    sgl::AttributeBuilder ab(program);
     // Create a fullscreen quad
     ab.Begin(sgl::Primitives::Quad);
     ab.Vertex({0, 0});
