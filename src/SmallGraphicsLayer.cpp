@@ -234,13 +234,13 @@ void AttributeBuilder::End() {
     }
 }
 
-void AttributeBuilder::Draw() {
+void AttributeBuilder::Draw() const {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
     sg_draw(0, elements, 1);
 }
 
-void AttributeBuilder::Draw(AttributeProgram p) {
+void AttributeBuilder::Draw(AttributeProgram p) const {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
         if (use_custom_fragment) {
@@ -329,7 +329,7 @@ void Sprite::Update(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale) {
     params.mvp *= Math::Mat4::scale({ size.x * scale.x, size.y * scale.y, 1.0f });
 }
 
-void Sprite::Draw() {
+void Sprite::Draw() const {
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
     sg_apply_uniforms(UB_sprite_params, SG_RANGE(params));
@@ -422,7 +422,7 @@ void InstancedSprite::Update(Math::Mat4 projection, Math::Mat4 view) {
     vs_params.mvp = projection * view;
 }
 
-void InstancedSprite::Draw() {
+void InstancedSprite::Draw() const {
     if (instances.empty()) return;
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);

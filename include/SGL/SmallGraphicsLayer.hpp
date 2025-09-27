@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
-#include <functional>
 #include <unordered_map>
 
 namespace SmallGraphicsLayer {
@@ -42,11 +41,11 @@ public:
 
     static float Width()  { return width;  }
     static float Height() { return height; }
-    Math::Vec2 FrameSize() { return {static_cast<float>(width), static_cast<float>(height)}; };
+    static Math::Vec2 FrameSize() { return {static_cast<float>(width), static_cast<float>(height)}; };
 private:
     static std::uint32_t width, height;
-    sg_pass_action pass_action;
-    sg_swapchain swapchain;
+    sg_pass_action pass_action = {};
+    sg_swapchain swapchain = {};
 };
 
 inline Math::Mat4 GetDefaultProjection() {
@@ -87,9 +86,9 @@ public:
 
     AttributeProgram(const std::string& frag);
     void ApplyDefaultUniforms(Math::Vec2 resolution = {0, 0}, float time = 0.f);
-    fs_params GetUniformParams() { return params; }
-    sg_shader_desc GetDesc() { return desc; }
-    bool HasAppliedUniforms() { return applied_uniforms; }
+    fs_params GetUniformParams() const { return params; }
+    sg_shader_desc GetDesc() const { return desc; }
+    bool HasAppliedUniforms() const { return applied_uniforms; }
 private:
     sg_shader_desc desc = {};
     std::string frag_src_storage;
@@ -108,13 +107,20 @@ typedef Math::Vec3 Position;
 struct Index { std::uint16_t x, y, z; };
 
 // Basic primitve and attribute renderer
-class AttributeBuilder : public Renderer {
+class AttributeBuilder final : public Renderer {
 public:
-    AttributeBuilder(Math::Vec2 framebufferSize, bool useNDC = false) : program("") {
+    AttributeBuilder(const bool useNDC = false, const Math::Vec2 framebufferSize = Device::FrameSize()) : elements(0),
+                                                                        chunks(0), expected_chunks(0),
+                                                                        use_custom_fragment(false),
+                                                                        program("")
+    {
         framebuf = framebufferSize;
         enable_ndc = useNDC;
     }
-    AttributeBuilder(Math::Vec2 framebufferSize, AttributeProgram fragmentProgram, bool useNDC = false) : program(fragmentProgram) {
+
+    AttributeBuilder(const AttributeProgram &fragmentProgram, const bool useNDC = false, const Math::Vec2 framebufferSize = Device::FrameSize()) :
+        elements(0), chunks(0), expected_chunks(0), program(fragmentProgram)
+    {
         framebuf = framebufferSize;
         enable_ndc = useNDC;
         use_custom_fragment = true;
@@ -125,13 +131,13 @@ public:
     AttributeBuilder& Index(Index index);
     
     void End();
-    void Draw();
-    void Draw(AttributeProgram program);
+    void Draw() const;
+    void Draw(AttributeProgram program) const;
     void Destroy() override;
     
     RendererType Type() const override { return RendererType::Attribute; }
 private:
-    inline Position _Pixels2NDC(Position pos) {
+    inline Position _Pixels2NDC(Position pos) const {
         float x = ((2 * pos.x) / framebuf.x) - 1;
         float y = 1 - ((2 * pos.y) / framebuf.y);
         return Math::Vec3(x, y, pos.z);
@@ -155,12 +161,12 @@ private:
 };
 
 // Single sprite renderer, uses one draw call per sprite
-class Sprite : public Renderer {
+class Sprite final : public Renderer {
 public:
     Sprite(std::tuple<int, int, unsigned char*> data);
     void Update(Math::Vec2 position, Math::Vec2 origin, Math::Vec2 scale);
-    void Draw();
-    void Render(Math::Vec2 position, Math::Vec2 origin = {0, 0}, Math::Vec2 scale = {1, 1}) {
+    void Draw() const;
+    void Render(const Math::Vec2 position, const Math::Vec2 origin = {0, 0}, const Math::Vec2 scale = {1, 1}) {
         Update(position, origin, scale);
         Draw();
     }
@@ -178,22 +184,22 @@ private:
     Math::Vec2 size;
 };
 
-inline Math::Vec2 get_tile_uv(Math::Vec2 tileIndex, Math::Vec2 tileSize, Math::Vec2 atlasSize) {
-    return Math::Vec2(tileIndex.x * tileSize.x / float(atlasSize.x), tileIndex.y * tileSize.y / float(atlasSize.y));
+inline Math::Vec2 get_tile_uv(const Math::Vec2 tileIndex, const Math::Vec2 tileSize, const Math::Vec2 atlasSize) {
+    return Math::Vec2(tileIndex.x * tileSize.x / static_cast<float>(atlasSize.x), tileIndex.y * tileSize.y / static_cast<float>(atlasSize.y));
 }
 
 // GPU sprite instancing
-class InstancedSprite : public Renderer {
+class InstancedSprite final : public Renderer {
 public:
-    void Reserve(std::size_t cap) { instances.reserve(cap); }
-    void PushData(Math::Vec2 offset, Math::Vec2 tile_index, Math::Vec2 tile_size = {0, 0}) {
+    void Reserve(const std::size_t cap) { instances.reserve(cap); }
+    void PushData(const Math::Vec2 offset, const Math::Vec2 tile_index, Math::Vec2 tile_size = {0, 0}) {
         instances.push_back(create_instance_data(offset, tile_index, tile_size));
     }
 
     InstancedSprite(std::tuple<int, int, unsigned char*> data, Math::Vec2 tileSize, std::uint16_t maxInstances = 4096);
     void Update(Math::Mat4 projection, Math::Mat4 view);
-    void Draw();
-    void Render(Math::Mat4 projection = GetDefaultProjection(), Math::Mat4 view = Math::Mat4(1.f)) {
+    void Draw() const;
+    void Render(const Math::Mat4 &projection = GetDefaultProjection(), const Math::Mat4 &view = Math::Mat4(1.f)) {
         Update(projection, view);
         Draw();
     }
@@ -209,7 +215,7 @@ private:
         Math::Vec2 uvScale;     // size of sprite in uv space
     };
 
-    InstanceData create_instance_data(Math::Vec2 offset, Math::Vec2 tileIndex, Math::Vec2 tileSize = {0, 0}) {
+    InstanceData create_instance_data(const Math::Vec2 offset, const Math::Vec2 tileIndex, Math::Vec2 tileSize = {0, 0}) const {
         if (tileSize == Math::Vec2(0, 0)) {
             tileSize = tile_size;
         }
@@ -228,7 +234,7 @@ private:
     unsigned int w, h;
     instance_params_t vs_params;
     Math::Vec2 tile_size;
-    std::vector<InstanceData> instances{};
+    std::vector<InstanceData> instances = {};
     bool dirty = false;
 };
 
