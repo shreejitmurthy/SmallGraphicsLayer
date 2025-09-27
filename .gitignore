@@ -3,3 +3,5 @@ build/
 .vscode/
 shd/
 **/.DS_Store
+cmake-build-sgl/
+cmake-build-debug/
