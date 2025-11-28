@@ -15,7 +15,7 @@ out vec4 FragColor;
 
 // Credit: https://www.shadertoy.com/view/tlVGDt
 float gTime = 0.0;
-const float REPEAT = 5.0; // (unused but kept for completeness)
+const float REPEAT = 5.0;  // (unused but kept for completeness)
 
 // Rotation matrix
 mat2 rot(float a) {
@@ -74,19 +74,14 @@ float box_set(vec3 pos, float timeVal) {
 	pos = pos_origin;
 	float box6 = box(pos, 0.5) * 6.0;
 
-	float result = max(
-	max(
-	max(
-	max(
-	max(box1, box2),
-	box3
-	),
-	box4
-	),
-	box5
-	),
-	box6
-	);
+	float boxes[6] = float[](box1, box2, box3, box4, box5, box6);
+
+	float result = boxes[0];
+	for (int i = 1; i < 6; i++) {
+		result = max(result, boxes[i]);
+	}
+
+
 	return result;
 }
 
@@ -96,17 +91,12 @@ float mapScene(vec3 pos, float timeVal) {
 	return box_set1;
 }
 
-// ------------------------------------------------------------------
-// Main (converted from mainImage)
-// ------------------------------------------------------------------
 void main() {
 	vec2 fragCoord = gl_FragCoord.xy;
 
-	// Normalized pixel coords (keeping aspect)
 	vec2 p = (fragCoord * 2.0 - iResolution.xy) /
 	min(iResolution.x, iResolution.y);
 
-	// Ray origin and direction
 	vec3 ro  = vec3(0.0, -0.2, iTime * 4.0);
 	vec3 ray = normalize(vec3(p, 1.5));
 
