@@ -11,6 +11,8 @@ struct Vec2 {
     constexpr Vec2() = default;
     constexpr Vec2(float x_, float y_) : x(x_), y(y_) {}
 
+    static constexpr Vec2 zero() { return Vec2(0, 0); }
+
     // basic arithmetic
     constexpr Vec2 operator+(const Vec2& r) const noexcept { return {x + r.x, y + r.y}; }
     constexpr Vec2 operator-(const Vec2& r) const noexcept { return {x - r.x, y - r.y}; }

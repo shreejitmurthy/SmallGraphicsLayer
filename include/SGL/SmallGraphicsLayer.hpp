@@ -109,18 +109,12 @@ struct Index { std::uint16_t x, y, z; };
 // Basic primitve and attribute renderer
 class AttributeBuilder final : public Renderer {
 public:
-    AttributeBuilder(const bool useNDC = false, const Math::Vec2 framebufferSize = Device::FrameSize()) : elements(0),
-                                                                        chunks(0), expected_chunks(0),
-                                                                        use_custom_fragment(false),
-                                                                        program("")
-    {
+    AttributeBuilder(const bool useNDC = false, const Math::Vec2 framebufferSize = Device::FrameSize()) : elements(0), chunks(0), expected_chunks(0), use_custom_fragment(false), program("") {
         framebuf = framebufferSize;
         enable_ndc = useNDC;
     }
 
-    AttributeBuilder(const AttributeProgram &fragmentProgram, const bool useNDC = false, const Math::Vec2 framebufferSize = Device::FrameSize()) :
-        elements(0), chunks(0), expected_chunks(0), program(fragmentProgram)
-    {
+    AttributeBuilder(const AttributeProgram &fragmentProgram, const bool useNDC = false, const Math::Vec2 framebufferSize = Device::FrameSize()) : elements(0), chunks(0), expected_chunks(0), program(fragmentProgram) {
         framebuf = framebufferSize;
         enable_ndc = useNDC;
         use_custom_fragment = true;

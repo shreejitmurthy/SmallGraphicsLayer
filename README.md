@@ -38,9 +38,10 @@ int main() {
 Currently, SGL can do the following:
 - Math functions similar to [glm](https://github.com/g-truc/glm)
 - Clear screen/buffer
-- Primitive drawing (w/ custom fragment shaders as well)
-- Asynchronous assset loading and fetching (it kinda sucks right now, but it works)
-- Sprite drawing (instancing and batching (*todo*))
+- Primitive drawing (w/ custom fragment shaders)
+- Asynchronous assset loading and fetching (not super optimal currently, but functional)
+- Sprite drawing (instancing, CPU batching in the future)
+
 
 
 >[!IMPORTANT]
