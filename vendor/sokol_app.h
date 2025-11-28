@@ -1206,6 +1206,11 @@
             doesn't matter if the application is started from the command
             line or via double-click.
 
+            NOTE: setting both win32_console_attach and win32_console_create
+            to true also makes sense and has the effect that output
+            will appear in the existing terminal when started from the cmdline, and
+            otherwise (when started via double-click) will open a console window.
+
     MEMORY ALLOCATION OVERRIDE
     ==========================
     You can override the memory allocation functions at initialization time
@@ -2147,6 +2152,9 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
         #define _SAPP_IOS (1)
         #if !defined(SOKOL_METAL) && !defined(SOKOL_GLES3)
         #error("sokol_app.h: unknown 3D API selected for iOS, must be SOKOL_METAL or SOKOL_GLES3")
+        #endif
+        #if TARGET_OS_TV
+        #define _SAPP_TVOS (1)
         #endif
     #endif
 #elif defined(__EMSCRIPTEN__)
@@ -3947,6 +3955,15 @@ _SOKOL_PRIVATE void _sapp_wgpu_create_device_and_swapchain(void) {
     }
     #undef _SAPP_WGPU_MAX_REQUESTED_FEATURES
 
+    WGPULimits adapterLimits = WGPU_LIMITS_INIT;
+    wgpuAdapterGetLimits(_sapp.wgpu.adapter, &adapterLimits);
+
+    WGPULimits requiredLimits = WGPU_LIMITS_INIT;
+    requiredLimits.maxColorAttachments = adapterLimits.maxColorAttachments;
+    requiredLimits.maxSampledTexturesPerShaderStage = adapterLimits.maxSampledTexturesPerShaderStage;
+    requiredLimits.maxStorageBuffersPerShaderStage = adapterLimits.maxStorageBuffersPerShaderStage;
+    requiredLimits.maxStorageTexturesPerShaderStage = adapterLimits.maxStorageTexturesPerShaderStage;
+
     WGPURequestDeviceCallbackInfo cb_info;
     _sapp_clear(&cb_info, sizeof(cb_info));
     cb_info.mode = _sapp_wgpu_callbackmode();
@@ -3956,6 +3973,7 @@ _SOKOL_PRIVATE void _sapp_wgpu_create_device_and_swapchain(void) {
     _sapp_clear(&dev_desc, sizeof(dev_desc));
     dev_desc.requiredFeatureCount = cur_feature_index;
     dev_desc.requiredFeatures = requiredFeatures;
+    dev_desc.requiredLimits = &requiredLimits;
     dev_desc.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowProcessEvents;
     dev_desc.deviceLostCallbackInfo.callback = _sapp_wgpu_device_lost_cb;
     dev_desc.uncapturedErrorCallbackInfo.callback = _sapp_wgpu_uncaptured_error_cb;
@@ -4701,6 +4719,30 @@ _SOKOL_PRIVATE void _sapp_macos_set_icon(const sapp_icon_desc* icon_desc, int nu
     CGImageRelease(cg_img);
 }
 
+_SOKOL_PRIVATE void _sapp_macos_frame(void) {
+    // NOTE: DO NOT call _sapp_macos_update_dimensions() function from within the
+    // frame callback (at least when called from MTKView's drawRect function).
+    // This will trigger a chicken-egg situation that triggers a
+    // Metal validation layer error about different render target sizes.
+    _sapp_timing_measure(&_sapp.timing);
+    #if defined(_SAPP_ANY_GL)
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&_sapp.gl.framebuffer);
+    #endif
+    @autoreleasepool {
+        #if defined(SOKOL_WGPU)
+        _sapp_wgpu_frame();
+        #else
+        _sapp_frame();
+        #endif
+    }
+    #if defined(_SAPP_ANY_GL)
+    [[_sapp.macos.view openGLContext] flushBuffer];
+    #endif
+    if (_sapp.quit_requested || _sapp.quit_ordered) {
+        [_sapp.macos.window performClose:nil];
+    }
+}
+
 @implementation _sapp_macos_app_delegate
 - (void)applicationDidFinishLaunching:(NSNotification*)aNotification {
     _SOKOL_UNUSED(aNotification);
@@ -4935,36 +4977,14 @@ _SOKOL_PRIVATE void _sapp_macos_set_icon(const sapp_icon_desc* icon_desc, int nu
 #if defined(SOKOL_WGPU)
 - (void)displayLinkFired:(id)sender {
     _SOKOL_UNUSED(sender);
-    _sapp_timing_measure(&_sapp.timing);
-    @autoreleasepool {
-        _sapp_wgpu_frame();
-    }
-    if (_sapp.quit_requested || _sapp.quit_ordered) {
-        [_sapp.macos.window performClose:nil];
-    }
+    _sapp_macos_frame();
 }
-#endif
-
+#else
 - (void)drawRect:(NSRect)rect {
     _SOKOL_UNUSED(rect);
-    #if defined(SOKOL_WGPU)
-        // should never be called
-        return;
-    #endif
-    #if defined(_SAPP_ANY_GL)
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&_sapp.gl.framebuffer);
-    #endif
-    _sapp_timing_measure(&_sapp.timing);
-    @autoreleasepool {
-        _sapp_frame();
-    }
-    #if defined(_SAPP_ANY_GL)
-    [[_sapp.macos.view openGLContext] flushBuffer];
-    #endif
-    if (_sapp.quit_requested || _sapp.quit_ordered) {
-        [_sapp.macos.window performClose:nil];
-    }
+    _sapp_macos_frame();
 }
+#endif
 
 - (BOOL)isOpaque {
     return YES;
@@ -5224,7 +5244,9 @@ _SOKOL_PRIVATE void _sapp_ios_mtl_init(void) {
     */
     _sapp.ios.view.autoResizeDrawable = false;
     _sapp.ios.view.userInteractionEnabled = YES;
+#if !defined(_SAPP_TVOS)
     _sapp.ios.view.multipleTouchEnabled = YES;
+#endif
     _sapp.ios.view_ctrl = [[UIViewController alloc] init];
     _sapp.ios.view_ctrl.modalPresentationStyle = UIModalPresentationFullScreen;
     _sapp.ios.view_ctrl.view = _sapp.ios.view;
@@ -5327,6 +5349,31 @@ _SOKOL_PRIVATE void _sapp_ios_app_event(sapp_event_type type) {
     }
 }
 
+_SOKOL_PRIVATE void _sapp_tvos_press_event(sapp_event_type type, NSSet<UIPress *>* presses) {
+    if (_sapp_events_enabled()) {
+        for (UIPress *press in presses) {
+            sapp_keycode key = SAPP_KEYCODE_INVALID;
+            switch (press.type) {
+                case UIPressTypeUpArrow:    key = SAPP_KEYCODE_UP; break;
+                case UIPressTypeDownArrow:  key = SAPP_KEYCODE_DOWN; break;
+                case UIPressTypeLeftArrow:  key = SAPP_KEYCODE_LEFT; break;
+                case UIPressTypeRightArrow: key = SAPP_KEYCODE_RIGHT; break;
+                case UIPressTypeSelect:     key = SAPP_KEYCODE_ENTER; break;
+                case UIPressTypeMenu:       key = SAPP_KEYCODE_MENU; break;
+                case UIPressTypePlayPause:  key = SAPP_KEYCODE_PAUSE; break;
+                default: break;
+            }
+            if (key != SAPP_KEYCODE_INVALID) {
+                _sapp_init_event(type);
+                _sapp.event.key_code = key;
+                _sapp.event.key_repeat = false;
+                _sapp.event.modifiers = 0;
+                _sapp_call_event(&_sapp.event);
+            }
+        }
+    }
+}
+
 _SOKOL_PRIVATE void _sapp_ios_touch_event(sapp_event_type type, NSSet<UITouch *>* touches, UIEvent* event) {
     if (_sapp_events_enabled()) {
         _sapp_init_event(type);
@@ -5382,6 +5429,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
         _sapp.ios.textfield.delegate = _sapp.ios.textfield_dlg;
         [_sapp.ios.view_ctrl.view addSubview:_sapp.ios.textfield];
 
+#if !defined(_SAPP_TVOS)
         [[NSNotificationCenter defaultCenter] addObserver:_sapp.ios.textfield_dlg
             selector:@selector(keyboardWasShown:)
             name:UIKeyboardDidShowNotification object:nil];
@@ -5391,6 +5439,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
         [[NSNotificationCenter defaultCenter] addObserver:_sapp.ios.textfield_dlg
             selector:@selector(keyboardDidChangeFrame:)
             name:UIKeyboardDidChangeFrameNotification object:nil];
+#endif
     }
     if (shown) {
         // setting the text field as first responder brings up the onscreen keyboard
@@ -5453,6 +5502,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
 - (void)keyboardWasShown:(NSNotification*)notif {
     _sapp.onscreen_keyboard_shown = true;
     /* query the keyboard's size, and modify the content view's size */
+#if !defined(_SAPP_TVOS)
     if (_sapp.desc.ios_keyboard_resizes_canvas) {
         NSDictionary* info = notif.userInfo;
         CGFloat kbd_h = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size.height;
@@ -5460,6 +5510,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
         view_frame.size.height -= kbd_h;
         _sapp.ios.view.frame = view_frame;
     }
+#endif
 }
 - (void)keyboardWillBeHidden:(NSNotification*)notif {
     _sapp.onscreen_keyboard_shown = false;
@@ -5469,6 +5520,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
 }
 - (void)keyboardDidChangeFrame:(NSNotification*)notif {
     /* this is for the case when the screen rotation changes while the keyboard is open */
+#if !defined(_SAPP_TVOS)
     if (_sapp.onscreen_keyboard_shown && _sapp.desc.ios_keyboard_resizes_canvas) {
         NSDictionary* info = notif.userInfo;
         CGFloat kbd_h = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size.height;
@@ -5476,6 +5528,7 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
         view_frame.size.height -= kbd_h;
         _sapp.ios.view.frame = view_frame;
     }
+#endif
 }
 - (BOOL)textField:(UITextField*)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString*)string {
     if (_sapp_events_enabled()) {
@@ -5535,6 +5588,17 @@ _SOKOL_PRIVATE void _sapp_ios_show_keyboard(bool shown) {
 }
 - (BOOL)isOpaque {
     return YES;
+}
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    _sapp_tvos_press_event(SAPP_EVENTTYPE_KEY_DOWN, presses);
+}
+- (void)pressesChanged:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+}
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    _sapp_tvos_press_event(SAPP_EVENTTYPE_KEY_UP, presses);
+}
+- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    _sapp_tvos_press_event(SAPP_EVENTTYPE_KEY_UP, presses);
 }
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent*)event {
     _sapp_ios_touch_event(SAPP_EVENTTYPE_TOUCHES_BEGAN, touches, event);
@@ -8151,9 +8215,6 @@ _SOKOL_PRIVATE void _sapp_win32_timing_measure(void) {
             HRESULT hr = _sapp_dxgi_GetFrameStatistics(_sapp.d3d11.swap_chain, &dxgi_stats);
             if (SUCCEEDED(hr)) {
                 if (dxgi_stats.SyncRefreshCount != _sapp.d3d11.sync_refresh_count) {
-                    if ((_sapp.d3d11.sync_refresh_count + 1) != dxgi_stats.SyncRefreshCount) {
-                        _sapp_timing_discontinuity(&_sapp.timing);
-                    }
                     _sapp.d3d11.sync_refresh_count = dxgi_stats.SyncRefreshCount;
                     LARGE_INTEGER qpc = dxgi_stats.SyncQPCTime;
                     const uint64_t now = (uint64_t)_sapp_int64_muldiv(qpc.QuadPart - _sapp.timing.timestamp.win.start.QuadPart, 1000000000, _sapp.timing.timestamp.win.freq.QuadPart);
@@ -8501,10 +8562,11 @@ _SOKOL_PRIVATE void _sapp_win32_destroy_icons(void) {
 _SOKOL_PRIVATE void _sapp_win32_init_console(void) {
     if (_sapp.desc.win32_console_create || _sapp.desc.win32_console_attach) {
         BOOL con_valid = FALSE;
-        if (_sapp.desc.win32_console_create) {
-            con_valid = AllocConsole();
-        } else if (_sapp.desc.win32_console_attach) {
+        if (_sapp.desc.win32_console_attach) {
             con_valid = AttachConsole(ATTACH_PARENT_PROCESS);
+        }
+        if (!con_valid && _sapp.desc.win32_console_create) {
+            con_valid = AllocConsole();
         }
         if (con_valid) {
             FILE* res_fp = 0;
