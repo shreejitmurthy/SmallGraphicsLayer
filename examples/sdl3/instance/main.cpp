@@ -54,8 +54,9 @@ int main() {
     // Instanced rendering is great for large maps or repeating quantities of something that share an image.
     // Always prefer GPU instancing for drawing many entities as it cuts down numerous draw calls to one
     // Later, SGL may be able to do CPU side sprite batching.
-    for (int y = 0; y < mapHeight; y++) {
-        for (int x = 0; x < mapWidth; x++) {
+    constexpr Vec2 map_start = {0, 0};
+    for (int y = map_start.y; y < mapHeight; y++) {
+        for (int x = map_start.x; x < mapWidth; x++) {
             // Tile indexing is zero-based
             isr.PushData(get_tile_offset({x, y}, {tileWidth, tileHeight}), {7, 3});
         }
